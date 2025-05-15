@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
-import { PlusCircle, Trash2, Brain, Eye, Download, Save, Loader2 } from "lucide-react"
+import { PlusCircle, Trash2, Brain, Eye, Download, Save, Loader2, AlertTriangle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useAiService } from "@/lib/ai-service"
 import { useRouter } from "next/navigation"
@@ -17,6 +17,8 @@ import { generatePDF } from "@/lib/pdf-generator"
 import { MagneticButton } from "@/components/animations/magnetic-button"
 import { ScrollReveal } from "@/components/animations/scroll-reveal"
 import { FloatingElements } from "@/components/animations/floating-elements"
+import { Badge } from "@/components/ui/badge"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
 interface Experience {
   id: number
@@ -109,6 +111,7 @@ export function CVForm() {
     projects: "",
   })
   const [currentStep, setCurrentStep] = useState(0)
+  const [aiError, setAiError] = useState<string | null>(null)
 
   const formSections = [
     { id: "personal", label: "Data Pribadi", icon: "👤" },
@@ -217,6 +220,7 @@ export function CVForm() {
 
   const handleGenerateSummary = async () => {
     try {
+      setAiError(null)
       const summary = await generateSummary({
         name: formData.personal.name,
         position: formData.experiences[0]?.position || "",
@@ -244,9 +248,11 @@ export function CVForm() {
         description: "Ringkasan profesional telah dibuat dengan AI",
       })
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat generate ringkasan"
+      setAiError(errorMessage)
       toast({
         title: "Gagal membuat ringkasan",
-        description: "Terjadi kesalahan saat membuat ringkasan. Silakan coba lagi.",
+        description: errorMessage,
         variant: "destructive",
       })
     }
@@ -444,6 +450,40 @@ export function CVForm() {
     }
   }, [])
 
+  // Check if form has data
+  useEffect(() => {
+    const hasData = 
+      formData.personal.name !== "" ||
+      formData.personal.email !== "" ||
+      formData.personal.phone !== "" ||
+      formData.personal.address !== "" ||
+      formData.personal.linkedin !== "" ||
+      formData.personal.website !== "" ||
+      formData.summary !== "" ||
+      formData.experiences.some(exp => 
+        exp.company !== "" || 
+        exp.position !== "" || 
+        exp.location !== "" || 
+        exp.startDate !== "" || 
+        exp.endDate !== "" || 
+        exp.description !== ""
+      ) ||
+      formData.education.some(edu => 
+        edu.institution !== "" || 
+        edu.degree !== "" || 
+        edu.major !== "" || 
+        edu.year !== "" || 
+        edu.achievements !== ""
+      ) ||
+      formData.skills.hard !== "" ||
+      formData.skills.soft !== "" ||
+      formData.languages !== "" ||
+      formData.certificates !== "" ||
+      formData.projects !== ""
+
+    setHasDraft(hasData)
+  }, [formData])
+
   const formVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -608,29 +648,46 @@ export function CVForm() {
                   exit={{ opacity: 0, scale: 0.8 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => {
-                      if (window.confirm("Apakah Anda yakin ingin mengosongkan semua data form?")) {
-                        handleClearForm()
-                      }
-                    }}
-                    disabled={isClearing}
-                  >
-                    {isClearing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Mengosongkan...
-                      </>
-                    ) : (
-                      <>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Kosongkan Form
-                      </>
-                    )}
-                  </Button>
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <AlertTriangle className="h-5 w-5 text-destructive" />
+                          Kosongkan Form CV
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tindakan ini akan menghapus semua data yang telah Anda masukkan di form CV. Data yang sudah dihapus tidak dapat dikembalikan.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-destructive hover:bg-destructive/90"
+                          onClick={handleClearForm}
+                          disabled={isClearing}
+                        >
+                          {isClearing ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Mengosongkan...
+                            </>
+                          ) : (
+                            "Ya, Kosongkan Form"
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </motion.div>
               )}
               <motion.p 
@@ -748,6 +805,7 @@ export function CVForm() {
                         <Label htmlFor="ai-summary" className="flex items-center cursor-pointer text-sm">
                           <Brain className="h-4 w-4 mr-1.5 text-primary" />
                           Gunakan AI
+                          <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary hover:bg-primary/15">Beta</Badge>
                         </Label>
                       </div>
                     </div>
@@ -763,20 +821,26 @@ export function CVForm() {
                       <Card className="bg-primary/5 border-primary/20">
                         <CardContent className="p-4">
                           <p className="text-sm text-muted-foreground mb-3">
-                            AI akan membantu membuat ringkasan profesional berdasarkan data yang Anda masukkan di bagian lain.
-                            Lengkapi data pengalaman dan pendidikan untuk hasil yang lebih baik.
+                            AI akan membantu membuat ringkasan profesional berdasarkan data yang Anda masukkan. 
+                            Untuk hasil terbaik, pastikan Anda telah mengisi:
+                            <ul className="list-disc list-inside mt-2 space-y-1">
+                              <li>Data pribadi (minimal nama)</li>
+                              <li>Minimal satu pengalaman kerja</li>
+                              <li>Minimal satu pendidikan</li>
+                              <li>Beberapa skills (hard/soft skills)</li>
+                            </ul>
                           </p>
                           <Button
                             variant="outline"
                             size="sm"
                             className="w-full hover:bg-primary/10 transition-colors duration-300"
                             onClick={handleGenerateSummary}
-                            disabled={aiLoading}
+                            disabled={aiLoading || !formData.personal.name || formData.experiences.length === 0}
                           >
                             {aiLoading ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Generating...
+                                Sedang Generate...
                               </>
                             ) : (
                               <>
@@ -785,6 +849,11 @@ export function CVForm() {
                               </>
                             )}
                           </Button>
+                          {aiError && (
+                            <p className="text-sm text-destructive mt-2">
+                              Terjadi kesalahan: {aiError}
+                            </p>
+                          )}
                         </CardContent>
                       </Card>
                     )}
