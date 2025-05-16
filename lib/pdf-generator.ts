@@ -1,20 +1,30 @@
 "use client"
 
 import html2canvas from "html2canvas"
-import jsPDF from "jspdf"
+import { jsPDF } from "jspdf"
 import { toast } from "@/components/ui/use-toast"
 
-// Fungsi untuk mengecek apakah perangkat menggunakan iOS
+// Fungsi untuk mendeteksi perangkat mobile
+function isMobileDevice() {
+  return (
+    typeof window !== "undefined" &&
+    (navigator.userAgent.match(/Android/i) ||
+      navigator.userAgent.match(/webOS/i) ||
+      navigator.userAgent.match(/iPhone/i) ||
+      navigator.userAgent.match(/iPad/i) ||
+      navigator.userAgent.match(/iPod/i) ||
+      navigator.userAgent.match(/BlackBerry/i) ||
+      navigator.userAgent.match(/Windows Phone/i))
+  )
+}
+
+// Fungsi untuk mendeteksi iOS
 function isIOS() {
-  return [
-    'iPad Simulator',
-    'iPhone Simulator',
-    'iPod Simulator',
-    'iPad',
-    'iPhone',
-    'iPod'
-  ].includes(navigator.platform)
-  || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+  return (
+    typeof window !== "undefined" &&
+    /iPad|iPhone|iPod/.test(navigator.userAgent) && 
+    !(window as any).MSStream
+  )
 }
 
 export async function generatePDF(elementId: string, filename = "cv.pdf"): Promise<void> {
@@ -94,19 +104,31 @@ export async function generatePDF(elementId: string, filename = "cv.pdf"): Promi
       a4HeightMm
     )
 
-    // Penanganan khusus untuk iOS
-    if (isIOS()) {
+    // Penanganan khusus untuk perangkat mobile
+    if (isMobileDevice()) {
       // Buat blob dan buka di tab baru
       const pdfBlob = pdf.output('blob')
       const blobUrl = URL.createObjectURL(pdfBlob)
-      window.open(blobUrl, '_blank')
+      
+      // Buat link untuk download
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = filename
+      
+      // Untuk iOS, buka di tab baru
+      if (isIOS()) {
+        window.open(blobUrl, '_blank')
+      } else {
+        // Untuk Android dan mobile lainnya, trigger download
+        link.click()
+      }
       
       // Bersihkan URL setelah beberapa detik
       setTimeout(() => {
         URL.revokeObjectURL(blobUrl)
       }, 1000)
     } else {
-      // Untuk browser desktop, gunakan save seperti biasa
+      // Untuk desktop, gunakan save seperti biasa
       pdf.save(filename)
     }
 
