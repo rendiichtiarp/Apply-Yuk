@@ -2,12 +2,61 @@
 
 import { useState, useEffect } from "react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Phone, Mail, MapPin, Linkedin, Globe, Calendar, Building, Download, ArrowLeft, Share2 } from "lucide-react"
+import { Phone, Mail, MapPin, Linkedin, Globe, Calendar, Building, Download, ArrowLeft, Share2, Copy, Facebook, Twitter, MessageCircle, Link as LinkIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import Link from "next/link"
 import { generatePDF } from "@/lib/pdf-generator"
 import { motion, AnimatePresence } from "framer-motion"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+
+// Fallback data untuk CV kosong
+function getFallbackData() {
+  return {
+    personal: {
+      name: "John Doe",
+      email: "john.doe@example.com",
+      phone: "+62 812 3456 7890",
+      address: "Jakarta, Indonesia",
+      linkedin: "linkedin.com/in/johndoe",
+      website: "johndoe.com",
+    },
+    summary:
+      "Profesional IT berpengalaman 5+ tahun dengan keahlian dalam pengembangan web dan mobile. Memiliki track record dalam memimpin tim dan mengembangkan solusi teknologi yang inovatif untuk meningkatkan efisiensi bisnis dan pengalaman pengguna.",
+    experiences: [
+      {
+        id: 1,
+        company: "PT Tech Solutions",
+        position: "Senior Software Engineer",
+        location: "Jakarta",
+        startDate: "Jan 2020",
+        endDate: "Present",
+        description:
+          "• Mengembangkan dan memelihara aplikasi web menggunakan React, Node.js, dan MongoDB\n• Memimpin tim 5 developer dalam proyek e-commerce\n• Meningkatkan performa aplikasi sebesar 40% melalui optimasi kode dan database",
+      }
+    ],
+    education: [
+      {
+        id: 1,
+        institution: "Universitas Indonesia",
+        degree: "S1 Teknik Informatika",
+        year: "2018",
+        achievements: "GPA 3.8/4.0",
+      }
+    ],
+    skills: {
+      hard: "JavaScript, React, Node.js, Python, SQL, Git, Docker, AWS",
+      soft: "Kepemimpinan, Komunikasi, Manajemen Waktu, Problem Solving",
+    },
+    languages: "Bahasa Indonesia (Native), English (Professional)"
+  }
+}
 
 const previewVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -51,31 +100,94 @@ const templateVariants = {
   }
 }
 
-export function CVPreview() {
+const shareToFacebook = (url: string) => {
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')
+}
+
+const shareToTwitter = (url: string, text: string) => {
+  window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank')
+}
+
+const shareToWhatsApp = (url: string, text: string) => {
+  window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, '_blank')
+}
+
+const generateShareableLink = () => {
+  const uniqueId = Math.random().toString(36).substring(2, 10)
+  return {
+    url: `https://cvats.id/share/${uniqueId}`,
+    id: uniqueId
+  }
+}
+
+interface CVPreviewProps {
+  initialData?: any
+  isSharedView?: boolean
+}
+
+export function CVPreview({ initialData, isSharedView = false }: CVPreviewProps) {
   const { toast } = useToast()
   const [template, setTemplate] = useState("modern")
   const [language, setLanguage] = useState("id")
   const [cvData, setCvData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [shareableLink, setShareableLink] = useState("")
+  const [isSharing, setIsSharing] = useState(false)
 
   useEffect(() => {
-    // Load CV data from localStorage
-    const savedData = localStorage.getItem("cv-preview-data")
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData)
-        setCvData(parsedData)
-      } catch (e) {
-        console.error("Error parsing CV data:", e)
-        // Use fallback data if parsing fails
+    if (initialData) {
+      setCvData(initialData)
+    } else {
+      const savedData = localStorage.getItem("cv-preview-data")
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData)
+          setCvData(parsedData)
+        } catch (e) {
+          console.error("Error parsing CV data:", e)
+          setCvData(getFallbackData())
+        }
+      } else {
         setCvData(getFallbackData())
       }
-    } else {
-      // Use fallback data if no saved data exists
-      setCvData(getFallbackData())
     }
     setLoading(false)
-  }, [])
+  }, [initialData])
+
+  const handleShare = async () => {
+    try {
+      setIsSharing(true)
+      
+      const response = await fetch('/api/share', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cvData }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to share CV')
+      }
+
+      const { shareUrl } = await response.json()
+      setShareableLink(shareUrl)
+
+      toast({
+        title: "Link Siap Dibagikan",
+        description: "Link untuk CV Anda telah dibuat dan siap untuk dibagikan.",
+      })
+    } catch (error) {
+      console.error("Error creating share link:", error)
+      toast({
+        title: "Error",
+        description: "Gagal membuat link share. Silakan coba lagi.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSharing(false)
+    }
+  }
 
   const handleDownload = async () => {
     try {
@@ -90,27 +202,64 @@ export function CVPreview() {
     }
   }
 
-  const handleShare = () => {
-    // Create a shareable link (in a real app, this would generate a unique URL)
-    const dummyShareableLink = `https://cvats.id/share/${Math.random().toString(36).substring(2, 10)}`
-
-    // Copy to clipboard
-    navigator.clipboard
-      .writeText(dummyShareableLink)
-      .then(() => {
-        toast({
-          title: "Link Copied",
-          description: "A shareable link to your CV has been copied to clipboard.",
-        })
+  const handleCopyLink = async () => {
+    if (!shareableLink) {
+      await handleShare()
+    }
+    
+    try {
+      await navigator.clipboard.writeText(shareableLink)
+      toast({
+        title: "Link Tersalin",
+        description: "Link CV telah disalin ke clipboard.",
       })
-      .catch(() => {
-        toast({
-          title: "Failed to Copy",
-          description: "Could not copy the link to clipboard.",
-          variant: "destructive",
-        })
+    } catch (err) {
+      toast({
+        title: "Gagal Menyalin",
+        description: "Tidak dapat menyalin link ke clipboard.",
+        variant: "destructive",
       })
+    }
   }
+
+  const ShareMenu = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="rounded-full relative w-full sm:w-auto">
+          <Share2 className="h-4 w-4 mr-2 group-hover:rotate-12 transition-transform" />
+          Bagikan CV
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
+          <Copy className="mr-2 h-4 w-4" />
+          <span>Salin Link</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem 
+          onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Lihat CV saya di: ${shareableLink || ''}`)}`, '_blank')}
+          className="cursor-pointer"
+        >
+          <MessageCircle className="mr-2 h-4 w-4" />
+          <span>WhatsApp</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareableLink || '')}`, '_blank')}
+          className="cursor-pointer"
+        >
+          <Facebook className="mr-2 h-4 w-4" />
+          <span>Facebook</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareableLink || '')}&text=${encodeURIComponent('Lihat CV saya di:')}`, '_blank')}
+          className="cursor-pointer"
+        >
+          <Twitter className="mr-2 h-4 w-4" />
+          <span>Twitter</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
 
   if (loading) {
     return (
@@ -137,84 +286,75 @@ export function CVPreview() {
       initial="hidden"
       animate="visible"
     >
-      <motion.div 
-        className="flex flex-col md:flex-row justify-between items-center gap-4 w-full px-4 md:px-0"
-        variants={controlsVariants}
-      >
-        <div className="flex gap-3 w-full md:w-auto flex-wrap justify-center md:justify-start">
-          <motion.div 
-            whileHover={{ scale: 1.05 }} 
-            whileTap={{ scale: 0.95 }}
-            className="relative group"
-          >
-            <div className="absolute inset-0 bg-primary/10 rounded-full blur-md transition-all duration-300 opacity-0 group-hover:opacity-100" />
-            <Button asChild variant="outline" size="sm" className="rounded-full relative">
-              <Link href="/buat-cv">
-                <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                Kembali Edit
-              </Link>
-            </Button>
-          </motion.div>
-          <motion.div 
-            whileHover={{ scale: 1.05 }} 
-            whileTap={{ scale: 0.95 }}
-            className="relative group"
-          >
-            <div className="absolute inset-0 bg-primary/20 rounded-full blur-md transition-all duration-300 opacity-0 group-hover:opacity-100" />
-            <Button size="sm" className="rounded-full relative" onClick={handleDownload}>
-              <Download className="h-4 w-4 mr-2 group-hover:translate-y-0.5 transition-transform" />
-              Download PDF
-            </Button>
-          </motion.div>
-        </div>
+      {!isSharedView && (
+        <motion.div 
+          className="flex flex-col md:flex-row justify-between items-center gap-4 w-full px-4 md:px-0"
+          variants={controlsVariants}
+        >
+          <div className="flex gap-3 w-full md:w-auto flex-wrap justify-center md:justify-start">
+            <motion.div 
+              whileHover={{ scale: 1.05 }} 
+              whileTap={{ scale: 0.95 }}
+              className="relative group"
+            >
+              <div className="absolute inset-0 bg-primary/10 rounded-full blur-md transition-all duration-300 opacity-0 group-hover:opacity-100" />
+              <Button asChild variant="outline" size="sm" className="rounded-full relative">
+                <Link href="/buat-cv">
+                  <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                  Kembali Edit
+                </Link>
+              </Button>
+            </motion.div>
+          </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-          <Tabs defaultValue="id" className="w-full sm:w-auto">
-            <TabsList className="grid grid-cols-2 w-full bg-muted/50 p-1 rounded-lg min-w-[200px]">
-              <TabsTrigger 
-                value="id" 
-                onClick={() => setLanguage("id")}
-                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300"
-              >
-                Indonesia
-              </TabsTrigger>
-              <TabsTrigger 
-                value="en" 
-                onClick={() => setLanguage("en")}
-                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300"
-              >
-                English
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <Tabs defaultValue="id" className="w-full sm:w-auto">
+              <TabsList className="grid grid-cols-2 w-full bg-muted/50 p-1 rounded-lg min-w-[200px]">
+                <TabsTrigger 
+                  value="id" 
+                  onClick={() => setLanguage("id")}
+                  className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300"
+                >
+                  Indonesia
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="en" 
+                  onClick={() => setLanguage("en")}
+                  className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300"
+                >
+                  English
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-          <Tabs defaultValue="modern" className="w-full sm:w-auto">
-            <TabsList className="grid grid-cols-3 w-full bg-muted/50 p-1 rounded-lg min-w-[250px]">
-              <TabsTrigger 
-                value="modern" 
-                onClick={() => setTemplate("modern")}
-                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300 text-sm"
-              >
-                Modern
-              </TabsTrigger>
-              <TabsTrigger 
-                value="classic" 
-                onClick={() => setTemplate("classic")}
-                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300 text-sm"
-              >
-                Classic
-              </TabsTrigger>
-              <TabsTrigger 
-                value="minimal" 
-                onClick={() => setTemplate("minimal")}
-                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300 text-sm"
-              >
-                Minimal
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      </motion.div>
+            <Tabs defaultValue="modern" className="w-full sm:w-auto">
+              <TabsList className="grid grid-cols-3 w-full bg-muted/50 p-1 rounded-lg min-w-[250px]">
+                <TabsTrigger 
+                  value="modern" 
+                  onClick={() => setTemplate("modern")}
+                  className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300 text-sm"
+                >
+                  Modern
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="classic" 
+                  onClick={() => setTemplate("classic")}
+                  className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300 text-sm"
+                >
+                  Classic
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="minimal" 
+                  onClick={() => setTemplate("minimal")}
+                  className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300 text-sm"
+                >
+                  Minimal
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </motion.div>
+      )}
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -229,17 +369,26 @@ export function CVPreview() {
           <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.015] dark:opacity-[0.03]" />
           
           <div className="cv-paper-preview relative overflow-x-auto">
-            <div className="cv-paper min-w-[595px] max-w-[850px] mx-auto bg-white dark:bg-gray-900 p-6 sm:p-8 md:p-10 shadow-lg scale-[0.85] sm:scale-90 md:scale-100" id="cv-content">
-              {template === "modern" && (
-                <div className="flex flex-col space-y-4 sm:space-y-6">
-                  {/* Header */}
-                  <div className="border-b pb-6">
-                    <h1 className="text-3xl font-bold mb-2">{cvData.personal.name || "John Doe"}</h1>
-                    <p className="text-gray-600 mb-4">
+            <div 
+              className="cv-paper mx-auto bg-white dark:bg-gray-900 shadow-lg scale-[0.85] sm:scale-90 md:scale-100 print:scale-100 print:shadow-none overflow-hidden" 
+              id="cv-content" 
+              style={{ 
+                width: '210mm',
+                height: '297mm',
+                margin: '0 auto',
+                padding: '15mm',
+                boxSizing: 'border-box',
+                backgroundColor: 'white'
+              }}
+            >
+              {cvData && (
+                <div className="flex flex-col space-y-6">
+                  <div className="border-b border-gray-200 pb-6">
+                    <h1 className="text-3xl font-bold mb-3">{cvData.personal.name || "John Doe"}</h1>
+                    <p className="text-lg text-primary mb-4">
                       {cvData.experiences[0]?.position || "Senior Software Engineer"}
                     </p>
-
-                    <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm justify-center md:justify-start">
+                    <div className="flex flex-wrap gap-4 text-sm">
                       <div className="flex items-center">
                         <Phone className="h-4 w-4 mr-2 text-primary" />
                         <span>{cvData.personal.phone || "+62 812 3456 7890"}</span>
@@ -252,298 +401,102 @@ export function CVPreview() {
                         <MapPin className="h-4 w-4 mr-2 text-primary" />
                         <span>{cvData.personal.address || "Jakarta, Indonesia"}</span>
                       </div>
-                      <div className="flex items-center">
-                        <Linkedin className="h-4 w-4 mr-2 text-primary" />
-                        <span>{cvData.personal.linkedin || "linkedin.com/in/johndoe"}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[2fr,1fr] gap-8">
+                    <div className="space-y-6">
+                      <div>
+                        <h2 className="text-lg font-bold mb-4 text-primary border-b border-gray-200 pb-2">
+                          {language === "id" ? "Pengalaman Kerja" : "Work Experience"}
+                        </h2>
+                        <div className="space-y-5">
+                          {(cvData.experiences || []).map((exp: any, index: number) => (
+                            <div key={index}>
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <h3 className="font-bold text-base">{exp.position || "Software Engineer"}</h3>
+                                  <div className="flex items-center text-sm text-gray-600 mt-1">
+                                    <Building className="h-3.5 w-3.5 mr-1.5" />
+                                    <span>
+                                      {exp.company || "PT Tech Solutions"}, {exp.location || "Jakarta"}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center text-sm text-gray-600">
+                                  <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                                  <span>{`${exp.startDate || "Jan 2020"} - ${exp.endDate || "Present"}`}</span>
+                                </div>
+                              </div>
+                              <p className="mt-2 text-sm leading-relaxed whitespace-pre-line">
+                                {exp.description ||
+                                  "• Mengembangkan dan memelihara aplikasi web menggunakan React, Node.js, dan MongoDB\n• Memimpin tim 5 developer dalam proyek e-commerce\n• Meningkatkan performa aplikasi sebesar 40% melalui optimasi kode dan database"}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      {cvData.personal.website && (
-                        <div className="flex items-center">
-                          <Globe className="h-4 w-4 mr-2 text-primary" />
-                          <span>{cvData.personal.website}</span>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div>
+                        <h2 className="text-lg font-bold mb-3 text-primary border-b border-gray-200 pb-2">
+                          {language === "id" ? "Ringkasan" : "Summary"}
+                        </h2>
+                        <p className="text-sm leading-relaxed">
+                          {cvData.summary ||
+                            "Profesional IT berpengalaman 5+ tahun dengan keahlian dalam pengembangan web dan mobile. Memiliki track record dalam memimpin tim dan mengembangkan solusi teknologi yang inovatif."}
+                        </p>
+                      </div>
+
+                      <div>
+                        <h2 className="text-lg font-bold mb-3 text-primary border-b border-gray-200 pb-2">
+                          {language === "id" ? "Pendidikan" : "Education"}
+                        </h2>
+                        <div className="space-y-3">
+                          {(cvData.education || []).map((edu: any, index: number) => (
+                            <div key={index}>
+                              <h3 className="font-bold text-base">{edu.degree || "S1 Teknik Informatika"}</h3>
+                              <p className="text-sm text-gray-600">{edu.institution || "Universitas Indonesia"}</p>
+                              <p className="text-sm text-gray-600">{edu.year || "2018"}</p>
+                              {edu.achievements && (
+                                <p className="text-sm text-gray-600 mt-1">{edu.achievements}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h2 className="text-lg font-bold mb-3 text-primary border-b border-gray-200 pb-2">
+                          {language === "id" ? "Keahlian" : "Skills"}
+                        </h2>
+                        <div className="space-y-3">
+                          <div>
+                            <h3 className="font-bold text-sm mb-2">Hard Skills</h3>
+                            <p className="text-sm leading-relaxed">
+                              {cvData.skills?.hard || "JavaScript, React, Node.js, Python, SQL, Git, Docker, AWS"}
+                            </p>
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-sm mb-2">Soft Skills</h3>
+                            <p className="text-sm leading-relaxed">
+                              {cvData.skills?.soft || "Kepemimpinan, Komunikasi, Manajemen Waktu, Problem Solving"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {(cvData.languages || "").length > 0 && (
+                        <div>
+                          <h2 className="text-lg font-bold mb-3 text-primary border-b border-gray-200 pb-2">
+                            {language === "id" ? "Bahasa" : "Languages"}
+                          </h2>
+                          <p className="text-sm leading-relaxed">
+                            {cvData.languages || "Bahasa Indonesia (Native), English (Professional)"}
+                          </p>
                         </div>
                       )}
-                    </div>
-                  </div>
-
-                  {/* Summary */}
-                  <div>
-                    <h2 className="text-lg font-bold mb-2 text-primary">
-                      {language === "id" ? "Ringkasan Profesional" : "Professional Summary"}
-                    </h2>
-                    <p>
-                      {cvData.summary ||
-                        "Profesional IT berpengalaman 5+ tahun dengan keahlian dalam pengembangan web dan mobile. Memiliki track record dalam memimpin tim dan mengembangkan solusi teknologi yang inovatif untuk meningkatkan efisiensi bisnis dan pengalaman pengguna."}
-                    </p>
-                  </div>
-
-                  {/* Experience */}
-                  <div>
-                    <h2 className="text-lg font-bold mb-3 text-primary">
-                      {language === "id" ? "Pengalaman Kerja" : "Work Experience"}
-                    </h2>
-
-                    <div className="space-y-4">
-                      {(cvData.experiences || []).map((exp: any, index: number) => (
-                        <div key={index}>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-bold">{exp.position || "Software Engineer"}</h3>
-                              <div className="flex items-center text-sm text-gray-600">
-                                <Building className="h-3 w-3 mr-1" />
-                                <span>
-                                  {exp.company || "PT Tech Solutions"}, {exp.location || "Jakarta"}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-center text-sm text-gray-600">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              <span>{`${exp.startDate || "Jan 2020"} - ${exp.endDate || "Present"}`}</span>
-                            </div>
-                          </div>
-                          <p className="mt-2 whitespace-pre-line text-sm">
-                            {exp.description ||
-                              "• Mengembangkan dan memelihara aplikasi web menggunakan React, Node.js, dan MongoDB\n• Memimpin tim 5 developer dalam proyek e-commerce\n• Meningkatkan performa aplikasi sebesar 40% melalui optimasi kode dan database"}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Education */}
-                  <div>
-                    <h2 className="text-lg font-bold mb-3 text-primary">
-                      {language === "id" ? "Pendidikan" : "Education"}
-                    </h2>
-
-                    <div className="space-y-2">
-                      {(cvData.education || []).map((edu: any, index: number) => (
-                        <div key={index} className="flex justify-between">
-                          <div>
-                            <h3 className="font-bold">{edu.degree || "S1 Teknik Informatika"}</h3>
-                            <p className="text-sm text-gray-600">{edu.institution || "Universitas Indonesia"}</p>
-                            {edu.achievements && <p className="text-sm text-gray-600 mt-1">{edu.achievements}</p>}
-                          </div>
-                          <div className="text-sm text-gray-600">{edu.year || "2018"}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Skills */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <h2 className="text-lg font-bold mb-2 text-primary">
-                        {language === "id" ? "Hard Skills" : "Hard Skills"}
-                      </h2>
-                      <p>{cvData.skills?.hard || "JavaScript, React, Node.js, Python, SQL, Git, Docker, AWS"}</p>
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-bold mb-2 text-primary">
-                        {language === "id" ? "Soft Skills" : "Soft Skills"}
-                      </h2>
-                      <p>{cvData.skills?.soft || "Kepemimpinan, Komunikasi, Manajemen Waktu, Problem Solving"}</p>
-                    </div>
-                  </div>
-
-                  {/* Languages */}
-                  {(cvData.languages || "").length > 0 && (
-                    <div>
-                      <h2 className="text-lg font-bold mb-2 text-primary">
-                        {language === "id" ? "Bahasa" : "Languages"}
-                      </h2>
-                      <p>{cvData.languages || "Bahasa Indonesia (Native), English (Professional)"}</p>
-                    </div>
-                  )}
-
-                  {/* Certificates */}
-                  {(cvData.certificates || "").length > 0 && (
-                    <div>
-                      <h2 className="text-lg font-bold mb-2 text-primary">
-                        {language === "id" ? "Sertifikat" : "Certificates"}
-                      </h2>
-                      <p>
-                        {cvData.certificates ||
-                          "AWS Certified Solutions Architect (2022), Google Professional Cloud Developer (2021)"}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Projects */}
-                  {(cvData.projects || "").length > 0 && (
-                    <div>
-                      <h2 className="text-lg font-bold mb-2 text-primary">
-                        {language === "id" ? "Proyek" : "Projects"}
-                      </h2>
-                      <p>
-                        {cvData.projects ||
-                          "E-commerce Platform - Mengembangkan platform e-commerce full-stack dengan fitur pembayaran dan analitik"}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {template === "classic" && (
-                <div className="flex flex-col space-y-6">
-                  {/* Header - Classic Style */}
-                  <div className="text-center border-b pb-6">
-                    <h1 className="text-3xl font-bold uppercase mb-2">{cvData.personal.name || "John Doe"}</h1>
-                    <p className="text-gray-600 mb-4">
-                      {cvData.experiences[0]?.position || "Senior Software Engineer"}
-                    </p>
-
-                    <div className="flex flex-wrap justify-center gap-4 text-sm">
-                      <div className="flex items-center">
-                        <Phone className="h-4 w-4 mr-2 text-gray-600" />
-                        <span>{cvData.personal.phone || "+62 812 3456 7890"}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Mail className="h-4 w-4 mr-2 text-gray-600" />
-                        <span>{cvData.personal.email || "john.doe@example.com"}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2 text-gray-600" />
-                        <span>{cvData.personal.address || "Jakarta, Indonesia"}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Rest of the sections with classic styling */}
-                  <div>
-                    <h2 className="text-lg font-bold uppercase mb-2 border-b">
-                      {language === "id" ? "Ringkasan Profesional" : "Professional Summary"}
-                    </h2>
-                    <p>
-                      {cvData.summary ||
-                        "Profesional IT berpengalaman 5+ tahun dengan keahlian dalam pengembangan web dan mobile. Memiliki track record dalam memimpin tim dan mengembangkan solusi teknologi yang inovatif untuk meningkatkan efisiensi bisnis dan pengalaman pengguna."}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h2 className="text-lg font-bold uppercase mb-3 border-b">
-                      {language === "id" ? "Pengalaman Kerja" : "Work Experience"}
-                    </h2>
-
-                    <div className="space-y-4">
-                      {(cvData.experiences || []).map((exp: any, index: number) => (
-                        <div key={index}>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-bold">{exp.position || "Software Engineer"}</h3>
-                              <div className="flex items-center text-sm text-gray-600">
-                                <span>
-                                  {exp.company || "PT Tech Solutions"}, {exp.location || "Jakarta"}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              <span>{`${exp.startDate || "Jan 2020"} - ${exp.endDate || "Present"}`}</span>
-                            </div>
-                          </div>
-                          <p className="mt-2 whitespace-pre-line text-sm">
-                            {exp.description ||
-                              "• Mengembangkan dan memelihara aplikasi web menggunakan React, Node.js, dan MongoDB\n• Memimpin tim 5 developer dalam proyek e-commerce\n• Meningkatkan performa aplikasi sebesar 40% melalui optimasi kode dan database"}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Other sections follow the same pattern */}
-                  <div>
-                    <h2 className="text-lg font-bold uppercase mb-3 border-b">
-                      {language === "id" ? "Pendidikan" : "Education"}
-                    </h2>
-                    <div className="space-y-2">
-                      {(cvData.education || []).map((edu: any, index: number) => (
-                        <div key={index} className="flex justify-between">
-                          <div>
-                            <h3 className="font-bold">{edu.degree || "S1 Teknik Informatika"}</h3>
-                            <p className="text-sm text-gray-600">{edu.institution || "Universitas Indonesia"}</p>
-                          </div>
-                          <div className="text-sm text-gray-600">{edu.year || "2018"}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {template === "minimal" && (
-                <div className="flex flex-col space-y-6">
-                  {/* Minimal template content */}
-                  <div>
-                    <h1 className="text-2xl font-bold mb-1">{cvData.personal.name || "John Doe"}</h1>
-                    <p className="text-gray-600 text-sm mb-4">
-                      {cvData.experiences[0]?.position || "Senior Software Engineer"}
-                    </p>
-
-                    <div className="flex flex-wrap gap-3 text-xs">
-                      <span>{cvData.personal.email || "john.doe@example.com"}</span>
-                      <span>•</span>
-                      <span>{cvData.personal.phone || "+62 812 3456 7890"}</span>
-                      <span>•</span>
-                      <span>{cvData.personal.address || "Jakarta, Indonesia"}</span>
-                    </div>
-                  </div>
-
-                  <div className="border-t pt-4">
-                    <p className="text-sm">
-                      {cvData.summary ||
-                        "Profesional IT berpengalaman 5+ tahun dengan keahlian dalam pengembangan web dan mobile. Memiliki track record dalam memimpin tim dan mengembangkan solusi teknologi yang inovatif untuk meningkatkan efisiensi bisnis dan pengalaman pengguna."}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">
-                      {language === "id" ? "Pengalaman" : "Experience"}
-                    </h2>
-                    <div className="space-y-3">
-                      {(cvData.experiences || []).map((exp: any, index: number) => (
-                        <div key={index}>
-                          <div className="flex justify-between items-baseline">
-                            <h3 className="font-medium">{exp.position || "Software Engineer"}</h3>
-                            <span className="text-xs text-gray-500">{`${exp.startDate || "Jan 2020"} - ${exp.endDate || "Present"}`}</span>
-                          </div>
-                          <p className="text-xs text-gray-600">{exp.company || "PT Tech Solutions"}</p>
-                          <p className="mt-1 text-xs whitespace-pre-line">
-                            {exp.description ||
-                              "• Mengembangkan dan memelihara aplikasi web menggunakan React, Node.js, dan MongoDB\n• Memimpin tim 5 developer dalam proyek e-commerce\n• Meningkatkan performa aplikasi sebesar 40% melalui optimasi kode dan database"}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">
-                      {language === "id" ? "Pendidikan" : "Education"}
-                    </h2>
-                    <div className="space-y-2">
-                      {(cvData.education || []).map((edu: any, index: number) => (
-                        <div key={index} className="flex justify-between">
-                          <div>
-                            <h3 className="font-medium">{edu.degree || "S1 Teknik Informatika"}</h3>
-                            <p className="text-xs text-gray-600">{edu.institution || "Universitas Indonesia"}</p>
-                          </div>
-                          <div className="text-xs text-gray-500">{edu.year || "2018"}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Skills</h2>
-                      <p className="text-xs">
-                        {cvData.skills?.hard || "JavaScript, React, Node.js, Python, SQL, Git, Docker, AWS"}
-                      </p>
-                    </div>
-                    <div>
-                      <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Languages</h2>
-                      <p className="text-xs">
-                        {cvData.languages || "Bahasa Indonesia (Native), English (Professional)"}
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -553,87 +506,36 @@ export function CVPreview() {
         </motion.div>
       </AnimatePresence>
 
-      <motion.div 
-        className="flex flex-col sm:flex-row justify-center gap-4 px-4 md:px-0"
-        variants={controlsVariants}
-      >
+      {!isSharedView && (
         <motion.div 
-          whileHover={{ scale: 1.05 }} 
-          whileTap={{ scale: 0.95 }}
-          className="relative group w-full sm:w-auto"
+          className="flex flex-col sm:flex-row justify-center gap-4 px-4 md:px-0"
+          variants={controlsVariants}
         >
-          <div className="absolute inset-0 bg-primary/10 rounded-full blur-md transition-all duration-300 opacity-0 group-hover:opacity-100" />
-          <Button variant="outline" className="rounded-full relative w-full sm:w-auto" onClick={handleShare}>
-            <Share2 className="h-4 w-4 mr-2 group-hover:rotate-12 transition-transform" />
-            Share CV
-          </Button>
+          <motion.div 
+            whileHover={{ scale: 1.05 }} 
+            whileTap={{ scale: 0.95 }}
+            className="relative group w-full sm:w-auto"
+          >
+            <div className="absolute inset-0 bg-primary/10 rounded-full blur-md transition-all duration-300 opacity-0 group-hover:opacity-100" />
+            <ShareMenu />
+          </motion.div>
+          <motion.div 
+            whileHover={{ scale: 1.05 }} 
+            whileTap={{ scale: 0.95 }}
+            className="relative group w-full sm:w-auto"
+          >
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-md transition-all duration-300 opacity-0 group-hover:opacity-100" />
+            <Button 
+              className="rounded-full relative w-full sm:w-auto" 
+              onClick={handleDownload}
+              disabled={isSharing}
+            >
+              <Download className="h-4 w-4 mr-2 group-hover:translate-y-0.5 transition-transform" />
+              {isSharing ? 'Memproses...' : 'Download PDF'}
+            </Button>
+          </motion.div>
         </motion.div>
-        <motion.div 
-          whileHover={{ scale: 1.05 }} 
-          whileTap={{ scale: 0.95 }}
-          className="relative group w-full sm:w-auto"
-        >
-          <div className="absolute inset-0 bg-primary/20 rounded-full blur-md transition-all duration-300 opacity-0 group-hover:opacity-100" />
-          <Button className="rounded-full relative w-full sm:w-auto" onClick={handleDownload}>
-            <Download className="h-4 w-4 mr-2 group-hover:translate-y-0.5 transition-transform" />
-            Download PDF
-          </Button>
-        </motion.div>
-      </motion.div>
+      )}
     </motion.div>
   )
-}
-
-function getFallbackData() {
-  return {
-    personal: {
-      name: "John Doe",
-      email: "john.doe@example.com",
-      phone: "+62 812 3456 7890",
-      address: "Jakarta, Indonesia",
-      linkedin: "linkedin.com/in/johndoe",
-      website: "johndoe.com",
-    },
-    summary:
-      "Profesional IT berpengalaman 5+ tahun dengan keahlian dalam pengembangan web dan mobile. Memiliki track record dalam memimpin tim dan mengembangkan solusi teknologi yang inovatif untuk meningkatkan efisiensi bisnis dan pengalaman pengguna.",
-    experiences: [
-      {
-        id: 1,
-        company: "PT Tech Solutions",
-        position: "Senior Software Engineer",
-        location: "Jakarta",
-        startDate: "Jan 2020",
-        endDate: "Present",
-        description:
-          "• Mengembangkan dan memelihara aplikasi web menggunakan React, Node.js, dan MongoDB\n• Memimpin tim 5 developer dalam proyek e-commerce dengan nilai $500K\n• Meningkatkan performa aplikasi sebesar 40% melalui optimasi kode dan database",
-      },
-      {
-        id: 2,
-        company: "PT Digital Indonesia",
-        position: "Software Engineer",
-        location: "Bandung",
-        startDate: "Jun 2018",
-        endDate: "Dec 2019",
-        description:
-          "• Mengembangkan fitur-fitur baru untuk aplikasi mobile menggunakan React Native\n• Berkolaborasi dengan tim desain untuk implementasi UI/UX\n• Mengurangi bug sebesar 30% melalui implementasi unit testing",
-      },
-    ],
-    education: [
-      {
-        id: 1,
-        institution: "Universitas Indonesia",
-        degree: "S1 Teknik Informatika",
-        major: "Computer Science",
-        year: "2018",
-        achievements: "GPA 3.8/4.0, Ketua Himpunan Mahasiswa",
-      },
-    ],
-    skills: {
-      hard: "JavaScript, React, Node.js, Python, SQL, Git, Docker, AWS",
-      soft: "Kepemimpinan, Komunikasi, Manajemen Waktu, Problem Solving",
-    },
-    languages: "Bahasa Indonesia (Native), English (Professional)",
-    certificates: "AWS Certified Solutions Architect (2022), Google Professional Cloud Developer (2021)",
-    projects: "E-commerce Platform - Mengembangkan platform e-commerce full-stack dengan fitur pembayaran dan analitik",
-  }
 }

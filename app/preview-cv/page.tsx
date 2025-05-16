@@ -77,26 +77,6 @@ export default function PreviewCVPage() {
               </TextReveal>
             </div>
 
-            <motion.div 
-              className="flex flex-col sm:flex-row justify-center gap-4 mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-            >
-              <Button asChild variant="outline" size="lg" className="group">
-                <Link href="/buat-cv">
-                  <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
-                  Mau Edit Lagi! ✏️
-                </Link>
-              </Button>
-              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 group">
-                <Link href="#">
-                  <Download className="h-4 w-4 mr-2 group-hover:translate-y-0.5 transition-transform duration-300" />
-                  Download CV! 📥
-                </Link>
-              </Button>
-            </motion.div>
-
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
