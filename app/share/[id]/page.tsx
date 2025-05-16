@@ -129,12 +129,11 @@ function FeatureHighlight() {
   )
 }
 
-
-
 function CVContent({ id }: { id: string }) {
   const { toast } = useToast()
   const [cvData, setCvData] = useState<CVData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     const fetchCV = async () => {
@@ -174,6 +173,7 @@ function CVContent({ id }: { id: string }) {
 
   const handleDownload = async () => {
     try {
+      setDownloading(true)
       await generatePDF("cv-content", `cv-${cvData?.personal?.name || "user"}.pdf`)
     } catch (error) {
       console.error("Error downloading PDF:", error)
@@ -182,6 +182,8 @@ function CVContent({ id }: { id: string }) {
         description: "Gagal mengunduh PDF. Silakan coba lagi.",
         variant: "destructive",
       })
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -239,9 +241,19 @@ function CVContent({ id }: { id: string }) {
           <Button 
             className="rounded-full relative w-full sm:w-auto" 
             onClick={handleDownload}
+            disabled={downloading}
           >
-            <Download className="h-4 w-4 mr-2 group-hover:translate-y-0.5 transition-transform" />
-            Download PDF
+            {downloading ? (
+              <>
+                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                Downloading...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2 group-hover:translate-y-0.5 transition-transform" />
+                Download PDF
+              </>
+            )}
           </Button>
         </motion.div>
 
