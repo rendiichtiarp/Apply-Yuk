@@ -104,40 +104,30 @@ export async function generatePDF(elementId: string, filename = "cv.pdf"): Promi
       a4HeightMm
     )
 
-    // Penanganan khusus untuk perangkat mobile
-    if (isMobileDevice()) {
-      // Buat blob dan buka di tab baru
-      const pdfBlob = pdf.output('blob')
-      const blobUrl = URL.createObjectURL(pdfBlob)
-      
-      // Buat link untuk download
-      const link = document.createElement('a')
-      link.href = blobUrl
-      link.download = filename
-      
-      // Untuk iOS, buka di tab baru
-      if (isIOS()) {
-        window.open(blobUrl, '_blank')
-      } else {
-        // Untuk Android dan mobile lainnya, trigger download
-        link.click()
-      }
-      
-      // Bersihkan URL setelah beberapa detik
-      setTimeout(() => {
-        URL.revokeObjectURL(blobUrl)
-      }, 1000)
-    } else {
-      // Untuk desktop, gunakan save seperti biasa
-      pdf.save(filename)
-    }
+    // Generate PDF as base64 string
+    const pdfBase64 = pdf.output('datauristring')
+
+    // Create download link
+    const link = document.createElement('a')
+    link.href = pdfBase64
+    link.download = filename
+    link.target = '_blank'
+    
+    // Tambahkan link ke body
+    document.body.appendChild(link)
+    
+    // Trigger click event
+    link.click()
+    
+    // Hapus link setelah digunakan
+    setTimeout(() => {
+      document.body.removeChild(link)
+    }, 100)
 
     // Show success toast
     toast({
       title: "PDF Generated Successfully",
-      description: isIOS() 
-        ? "Your CV has been opened in a new tab. You can save it from there."
-        : "Your CV has been downloaded as a PDF file.",
+      description: "Your CV has been downloaded as a PDF file.",
     })
   } catch (error) {
     console.error("Error generating PDF:", error)
