@@ -104,30 +104,34 @@ export async function generatePDF(elementId: string, filename = "cv.pdf"): Promi
       a4HeightMm
     )
 
-    // Generate PDF as base64 string
-    const pdfBase64 = pdf.output('datauristring')
-
-    // Create download link
-    const link = document.createElement('a')
-    link.href = pdfBase64
-    link.download = filename
-    link.target = '_blank'
-    
-    // Tambahkan link ke body
-    document.body.appendChild(link)
-    
-    // Trigger click event
-    link.click()
-    
-    // Hapus link setelah digunakan
-    setTimeout(() => {
-      document.body.removeChild(link)
-    }, 100)
+    if (isMobileDevice()) {
+      // Untuk perangkat mobile, gunakan data URL
+      const pdfOutput = pdf.output('datauristring')
+      
+      // Buka di tab baru
+      const newTab = window.open()
+      if (newTab) {
+        newTab.document.write(
+          `<html><head><title>${filename}</title></head><body style="margin:0;padding:0;"><embed width="100%" height="100%" src="${pdfOutput}" type="application/pdf"></body></html>`
+        )
+      } else {
+        // Jika popup diblokir, berikan instruksi alternatif
+        toast({
+          title: "Info",
+          description: "Mohon izinkan popup untuk melihat PDF atau gunakan browser desktop untuk mengunduh.",
+        })
+      }
+    } else {
+      // Untuk desktop, gunakan save seperti biasa
+      pdf.save(filename)
+    }
 
     // Show success toast
     toast({
       title: "PDF Generated Successfully",
-      description: "Your CV has been downloaded as a PDF file.",
+      description: isMobileDevice()
+        ? "PDF telah dibuka di tab baru. Anda dapat mengunduhnya dari sana."
+        : "CV Anda telah berhasil diunduh.",
     })
   } catch (error) {
     console.error("Error generating PDF:", error)
@@ -135,7 +139,7 @@ export async function generatePDF(elementId: string, filename = "cv.pdf"): Promi
     // Show error toast
     toast({
       title: "Error Generating PDF",
-      description: "There was a problem creating your PDF. Please try again.",
+      description: "Terjadi masalah saat membuat PDF. Silakan coba lagi.",
       variant: "destructive",
     })
   }
