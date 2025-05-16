@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { templates, TemplateType } from './template'
 
 // Fallback data untuk CV kosong
 function getFallbackData() {
@@ -127,22 +128,29 @@ interface CVPreviewProps {
 
 export function CVPreview({ initialData, isSharedView = false }: CVPreviewProps) {
   const { toast } = useToast()
-  const [template, setTemplate] = useState("modern")
+  const [template, setTemplate] = useState<TemplateType>("modern")
   const [language, setLanguage] = useState("id")
   const [cvData, setCvData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [shareableLink, setShareableLink] = useState("")
   const [isSharing, setIsSharing] = useState(false)
+  const [shareId, setShareId] = useState<string | null>(null)
 
   useEffect(() => {
     if (initialData) {
       setCvData(initialData)
+      if (initialData.template) {
+        setTemplate(initialData.template)
+      }
     } else {
       const savedData = localStorage.getItem("cv-preview-data")
       if (savedData) {
         try {
           const parsedData = JSON.parse(savedData)
           setCvData(parsedData)
+          if (parsedData.template) {
+            setTemplate(parsedData.template)
+          }
         } catch (e) {
           console.error("Error parsing CV data:", e)
           setCvData(getFallbackData())
@@ -158,20 +166,36 @@ export function CVPreview({ initialData, isSharedView = false }: CVPreviewProps)
     try {
       setIsSharing(true)
       
+      const dataToShare = {
+        ...cvData,
+        template: template
+      }
+
+      if (shareId) {
+        const deleteResponse = await fetch(`/api/share/${shareId}`, {
+          method: 'DELETE',
+        })
+
+        if (!deleteResponse.ok) {
+          console.warn('Failed to delete old share data:', await deleteResponse.text())
+        }
+      }
+      
       const response = await fetch('/api/share', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ cvData }),
+        body: JSON.stringify({ cvData: dataToShare }),
       })
 
       if (!response.ok) {
         throw new Error('Failed to share CV')
       }
 
-      const { shareUrl } = await response.json()
+      const { shareUrl, id } = await response.json()
       setShareableLink(shareUrl)
+      setShareId(id)
 
       toast({
         title: "Link Siap Dibagikan",
@@ -203,59 +227,130 @@ export function CVPreview({ initialData, isSharedView = false }: CVPreviewProps)
   }
 
   const handleCopyLink = async () => {
-    if (!shareableLink) {
-      await handleShare()
-    }
-    
     try {
-      await navigator.clipboard.writeText(shareableLink)
+      setIsSharing(true)
+      let linkToCopy = shareableLink
+
+    if (!shareableLink) {
+        // Jika ada shareId sebelumnya, hapus data lama
+        if (shareId) {
+          const deleteResponse = await fetch(`/api/share/${shareId}`, {
+            method: 'DELETE',
+          })
+
+          if (!deleteResponse.ok) {
+            console.warn('Failed to delete old share data:', await deleteResponse.text())
+          }
+        }
+
+        const response = await fetch('/api/share', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            cvData: {
+              ...cvData,
+              template: template
+            }
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to share CV')
+        }
+
+        const { shareUrl, id } = await response.json()
+        setShareableLink(shareUrl)
+        setShareId(id)
+        linkToCopy = shareUrl // Gunakan URL yang baru dibuat
+      }
+      
+      // Pastikan ada link yang akan disalin
+      if (!linkToCopy) {
+        throw new Error('No link available to copy')
+      }
+
+      // Salin link ke clipboard
+      await navigator.clipboard.writeText(linkToCopy)
+      
       toast({
         title: "Link Tersalin",
         description: "Link CV telah disalin ke clipboard.",
       })
     } catch (err) {
+      console.error("Error copying link:", err)
       toast({
         title: "Gagal Menyalin",
         description: "Tidak dapat menyalin link ke clipboard.",
         variant: "destructive",
       })
+    } finally {
+      setIsSharing(false)
     }
   }
 
   const ShareMenu = () => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="rounded-full relative w-full sm:w-auto">
+        <Button variant="outline" className="rounded-full relative w-full sm:w-auto" disabled={isSharing}>
           <Share2 className="h-4 w-4 mr-2 group-hover:rotate-12 transition-transform" />
-          Bagikan CV
+          {isSharing ? 'Memproses...' : 'Bagikan CV'}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
+        <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer" disabled={isSharing}>
           <Copy className="mr-2 h-4 w-4" />
-          <span>Salin Link</span>
+          <span>{isSharing ? 'Memproses...' : 'Salin Link'}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
-          onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Lihat CV saya di: ${shareableLink || ''}`)}`, '_blank')}
+          onClick={() => {
+            if (shareableLink) {
+              shareToWhatsApp(shareableLink, 'Lihat CV saya di:')
+            } else {
+              handleCopyLink().then(() => {
+                shareToWhatsApp(shareableLink, 'Lihat CV saya di:')
+              })
+            }
+          }}
           className="cursor-pointer"
+          disabled={isSharing}
         >
           <MessageCircle className="mr-2 h-4 w-4" />
-          <span>WhatsApp</span>
+          <span>{isSharing ? 'Memproses...' : 'WhatsApp'}</span>
         </DropdownMenuItem>
         <DropdownMenuItem 
-          onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareableLink || '')}`, '_blank')}
+          onClick={() => {
+            if (shareableLink) {
+              shareToFacebook(shareableLink)
+            } else {
+              handleCopyLink().then(() => {
+                shareToFacebook(shareableLink)
+              })
+            }
+          }}
           className="cursor-pointer"
+          disabled={isSharing}
         >
           <Facebook className="mr-2 h-4 w-4" />
-          <span>Facebook</span>
+          <span>{isSharing ? 'Memproses...' : 'Facebook'}</span>
         </DropdownMenuItem>
         <DropdownMenuItem 
-          onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareableLink || '')}&text=${encodeURIComponent('Lihat CV saya di:')}`, '_blank')}
+          onClick={() => {
+            if (shareableLink) {
+              shareToTwitter(shareableLink, 'Lihat CV saya di:')
+            } else {
+              handleCopyLink().then(() => {
+                shareToTwitter(shareableLink, 'Lihat CV saya di:')
+              })
+            }
+          }}
           className="cursor-pointer"
+          disabled={isSharing}
         >
           <Twitter className="mr-2 h-4 w-4" />
-          <span>Twitter</span>
+          <span>{isSharing ? 'Memproses...' : 'Twitter'}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -327,28 +422,28 @@ export function CVPreview({ initialData, isSharedView = false }: CVPreviewProps)
               </TabsList>
             </Tabs>
 
-            <Tabs defaultValue="modern" className="w-full sm:w-auto">
-              <TabsList className="grid grid-cols-3 w-full bg-muted/50 p-1 rounded-lg min-w-[250px]">
+            <Tabs defaultValue={template} className="w-full sm:w-auto">
+              <TabsList className="grid grid-cols-3 w-full bg-muted/50 p-1 rounded-lg min-w-[300px]">
                 <TabsTrigger 
                   value="modern" 
                   onClick={() => setTemplate("modern")}
-                  className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300 text-sm"
+                  className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300"
                 >
                   Modern
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="classic" 
-                  onClick={() => setTemplate("classic")}
-                  className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300 text-sm"
+                  value="professional" 
+                  onClick={() => setTemplate("professional")}
+                  className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300"
                 >
-                  Classic
+                  Professional
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="minimal" 
-                  onClick={() => setTemplate("minimal")}
-                  className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300 text-sm"
+                  value="classic" 
+                  onClick={() => setTemplate("classic")}
+                  className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-300"
                 >
-                  Minimal
+                  Classic
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -382,124 +477,10 @@ export function CVPreview({ initialData, isSharedView = false }: CVPreviewProps)
               }}
             >
               {cvData && (
-                <div className="flex flex-col space-y-6">
-                  <div className="border-b border-gray-200 pb-6">
-                    <h1 className="text-3xl font-bold mb-3">{cvData.personal.name || "John Doe"}</h1>
-                    <p className="text-lg text-primary mb-4">
-                      {cvData.experiences[0]?.position || "Senior Software Engineer"}
-                    </p>
-                    <div className="flex flex-wrap gap-4 text-sm">
-                      <div className="flex items-center">
-                        <Phone className="h-4 w-4 mr-2 text-primary" />
-                        <span>{cvData.personal.phone || "+62 812 3456 7890"}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Mail className="h-4 w-4 mr-2 text-primary" />
-                        <span>{cvData.personal.email || "john.doe@example.com"}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2 text-primary" />
-                        <span>{cvData.personal.address || "Jakarta, Indonesia"}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-[2fr,1fr] gap-8">
-                    <div className="space-y-6">
-                      <div>
-                        <h2 className="text-lg font-bold mb-4 text-primary border-b border-gray-200 pb-2">
-                          {language === "id" ? "Pengalaman Kerja" : "Work Experience"}
-                        </h2>
-                        <div className="space-y-5">
-                          {(cvData.experiences || []).map((exp: any, index: number) => (
-                            <div key={index}>
-                              <div className="flex justify-between items-start mb-2">
-                                <div>
-                                  <h3 className="font-bold text-base">{exp.position || "Software Engineer"}</h3>
-                                  <div className="flex items-center text-sm text-gray-600 mt-1">
-                                    <Building className="h-3.5 w-3.5 mr-1.5" />
-                                    <span>
-                                      {exp.company || "PT Tech Solutions"}, {exp.location || "Jakarta"}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="flex items-center text-sm text-gray-600">
-                                  <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                                  <span>{`${exp.startDate || "Jan 2020"} - ${exp.endDate || "Present"}`}</span>
-                                </div>
-                              </div>
-                              <p className="mt-2 text-sm leading-relaxed whitespace-pre-line">
-                                {exp.description ||
-                                  "• Mengembangkan dan memelihara aplikasi web menggunakan React, Node.js, dan MongoDB\n• Memimpin tim 5 developer dalam proyek e-commerce\n• Meningkatkan performa aplikasi sebesar 40% melalui optimasi kode dan database"}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      <div>
-                        <h2 className="text-lg font-bold mb-3 text-primary border-b border-gray-200 pb-2">
-                          {language === "id" ? "Ringkasan" : "Summary"}
-                        </h2>
-                        <p className="text-sm leading-relaxed">
-                          {cvData.summary ||
-                            "Profesional IT berpengalaman 5+ tahun dengan keahlian dalam pengembangan web dan mobile. Memiliki track record dalam memimpin tim dan mengembangkan solusi teknologi yang inovatif."}
-                        </p>
-                      </div>
-
-                      <div>
-                        <h2 className="text-lg font-bold mb-3 text-primary border-b border-gray-200 pb-2">
-                          {language === "id" ? "Pendidikan" : "Education"}
-                        </h2>
-                        <div className="space-y-3">
-                          {(cvData.education || []).map((edu: any, index: number) => (
-                            <div key={index}>
-                              <h3 className="font-bold text-base">{edu.degree || "S1 Teknik Informatika"}</h3>
-                              <p className="text-sm text-gray-600">{edu.institution || "Universitas Indonesia"}</p>
-                              <p className="text-sm text-gray-600">{edu.year || "2018"}</p>
-                              {edu.achievements && (
-                                <p className="text-sm text-gray-600 mt-1">{edu.achievements}</p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h2 className="text-lg font-bold mb-3 text-primary border-b border-gray-200 pb-2">
-                          {language === "id" ? "Keahlian" : "Skills"}
-                        </h2>
-                        <div className="space-y-3">
-                          <div>
-                            <h3 className="font-bold text-sm mb-2">Hard Skills</h3>
-                            <p className="text-sm leading-relaxed">
-                              {cvData.skills?.hard || "JavaScript, React, Node.js, Python, SQL, Git, Docker, AWS"}
-                            </p>
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-sm mb-2">Soft Skills</h3>
-                            <p className="text-sm leading-relaxed">
-                              {cvData.skills?.soft || "Kepemimpinan, Komunikasi, Manajemen Waktu, Problem Solving"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {(cvData.languages || "").length > 0 && (
-                        <div>
-                          <h2 className="text-lg font-bold mb-3 text-primary border-b border-gray-200 pb-2">
-                            {language === "id" ? "Bahasa" : "Languages"}
-                          </h2>
-                          <p className="text-sm leading-relaxed">
-                            {cvData.languages || "Bahasa Indonesia (Native), English (Professional)"}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <>
+                  {/* Render template yang dipilih */}
+                  {templates[template]({ cvData, language })}
+                </>
               )}
             </div>
           </div>

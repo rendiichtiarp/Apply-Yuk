@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
-import { PlusCircle, Trash2, Brain, Eye, Download, Save, Loader2, AlertTriangle } from "lucide-react"
+import { PlusCircle, Trash2, Brain, Eye, Download, Save, Loader2, AlertTriangle, Upload, Image as ImageIcon } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useAiService } from "@/lib/ai-service"
 import { useRouter } from "next/navigation"
@@ -19,6 +19,9 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal"
 import { FloatingElements } from "@/components/animations/floating-elements"
 import { Badge } from "@/components/ui/badge"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import Cropper from 'react-easy-crop'
+import type { Point, Area } from 'react-easy-crop'
 
 interface Experience {
   id: number
@@ -47,6 +50,7 @@ interface FormData {
     address: string
     linkedin: string
     website: string
+    photo?: string
   }
   summary: string
   experiences: Experience[]
@@ -58,6 +62,55 @@ interface FormData {
   languages: string
   certificates: string
   projects: string
+}
+
+// Fungsi untuk mengonversi file gambar ke base64
+const toBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = error => reject(error)
+  })
+}
+
+// Fungsi untuk menghasilkan gambar yang sudah di-crop
+const createImage = (url: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const image = new Image()
+    image.addEventListener('load', () => resolve(image))
+    image.addEventListener('error', error => reject(error))
+    image.src = url
+  })
+
+const getCroppedImg = async (imageSrc: string, pixelCrop: Area): Promise<string> => {
+  const image = await createImage(imageSrc)
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+
+  if (!ctx) {
+    throw new Error('No 2d context')
+  }
+
+  // Set ukuran canvas sesuai dengan area crop
+  canvas.width = pixelCrop.width
+  canvas.height = pixelCrop.height
+
+  // Draw gambar yang di-crop
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height
+  )
+
+  // Convert ke format JPEG dengan kualitas 0.9
+  return canvas.toDataURL('image/jpeg', 0.9)
 }
 
 export function CVForm() {
@@ -112,6 +165,11 @@ export function CVForm() {
   })
   const [currentStep, setCurrentStep] = useState(0)
   const [aiError, setAiError] = useState<string | null>(null)
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false)
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [tempPhoto, setTempPhoto] = useState<string | null>(null)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
 
   const formSections = [
     { id: "personal", label: "Data Pribadi", icon: "👤" },
@@ -605,6 +663,63 @@ export function CVForm() {
     }
   }
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      try {
+        const file = e.target.files[0]
+        const base64 = await toBase64(file)
+        setTempPhoto(base64)
+        setPhotoDialogOpen(true)
+      } catch (error) {
+        console.error('Error reading file:', error)
+        toast({
+          title: "Error",
+          description: "Gagal membaca file foto. Silakan coba lagi.",
+          variant: "destructive",
+        })
+      }
+    }
+  }
+
+  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels)
+  }, [])
+
+  const handleSaveCrop = async () => {
+    try {
+      if (!tempPhoto || !croppedAreaPixels) {
+        throw new Error('Missing required data for photo crop')
+      }
+
+      // Get cropped image as base64
+      const croppedImage = await getCroppedImg(tempPhoto, croppedAreaPixels)
+      
+      // Update form data dengan base64 image
+      setFormData(prev => ({
+        ...prev,
+        personal: {
+          ...prev.personal,
+          photo: croppedImage
+        }
+      }))
+
+      setPhotoDialogOpen(false)
+      setTempPhoto(null)
+
+      toast({
+        title: "Sukses",
+        description: "Foto profil berhasil disimpan",
+      })
+    } catch (error) {
+      console.error('Error in handleSaveCrop:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Gagal menyimpan foto. Silakan coba lagi.",
+        variant: "destructive",
+      })
+    }
+  }
+
   return (
     <motion.div
       initial="hidden"
@@ -616,7 +731,7 @@ export function CVForm() {
       <Tabs value={formSections[currentStep].id} onValueChange={setActiveTab}>
         {/* Progress Bar with enhanced animation */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <motion.h2 
               className="text-xl font-semibold flex items-center gap-2"
               initial={{ opacity: 0, y: 20 }}
@@ -640,56 +755,8 @@ export function CVForm() {
                 {formSections[currentStep].label}
               </motion.span>
             </motion.h2>
-            <div className="flex items-center gap-4">
-              {hasDraft && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Kosongkan Form
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="flex items-center gap-2">
-                          <AlertTriangle className="h-5 w-5 text-destructive" />
-                          Kosongkan Form CV
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tindakan ini akan menghapus semua data yang telah Anda masukkan di form CV. Data yang sudah dihapus tidak dapat dikembalikan.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction
-                          className="bg-destructive hover:bg-destructive/90"
-                          onClick={handleClearForm}
-                          disabled={isClearing}
-                        >
-                          {isClearing ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Mengosongkan...
-                            </>
-                          ) : (
-                            "Ya, Kosongkan Form"
-                          )}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </motion.div>
-              )}
+
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-3">
               <motion.p 
                 className="text-sm text-muted-foreground"
                 initial={{ opacity: 0 }}
@@ -700,6 +767,7 @@ export function CVForm() {
               </motion.p>
             </div>
           </div>
+
           <div className="w-full bg-muted/50 h-2 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-primary"
@@ -749,8 +817,69 @@ export function CVForm() {
                   initial="hidden"
                   animate="visible"
                 >
+                  {/* Photo Upload Section */}
+                  <div className="mb-6">
+                    <Label className="text-sm font-medium mb-3 block">Foto Profil</Label>
+                    <div className="flex items-start gap-4">
+                      <div className="w-32 h-40 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center border-2 border-primary/20 relative group">
+                        {formData.personal.photo ? (
+                          <>
+                            <img
+                              src={formData.personal.photo}
+                              alt="Profile"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-white hover:text-white hover:bg-white/20"
+                                onClick={() => setFormData(prev => ({
+                                  ...prev,
+                                  personal: {
+                                    ...prev.personal,
+                                    photo: undefined
+                                  }
+                                }))}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-center p-4">
+                            <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                            <p className="text-xs text-muted-foreground">
+                              Format: JPG, PNG<br />
+                              Maks: 2MB
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          id="photo-upload"
+                        />
+                        <Label
+                          htmlFor="photo-upload"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 hover:bg-primary/10 text-primary rounded-lg cursor-pointer transition-colors"
+                        >
+                          <Upload className="h-4 w-4" />
+                          Upload Foto
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Upload foto profil terbaik Anda. Foto akan ditampilkan dengan rasio 4:5.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Existing Personal Fields */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    {/* Personal fields with motion variants */}
                     {Object.entries(formData.personal).map(([field, value], index) => (
                       <motion.div
                         key={field}
@@ -986,7 +1115,7 @@ export function CVForm() {
                         <Label htmlFor={`degree-${edu.id}`}>Jenjang</Label>
                         <Input
                           id={`degree-${edu.id}`}
-                          placeholder="S1 / Bachelor's Degree"
+                          placeholder="S1 / SMK/SMA/MA"
                           value={edu.degree}
                           onChange={(e) => handleEducationChange(edu.id, "degree", e.target.value)}
                         />
@@ -1224,6 +1353,57 @@ export function CVForm() {
                       )}
                     </Button>
                   </motion.div>
+
+                  {hasDraft && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.2 }}
+                      className="w-full sm:w-auto"
+                    >
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 w-full justify-center"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Kosongkan Form
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="sm:max-w-[425px] max-h-[85vh] w-[95%] rounded-lg overflow-hidden p-4 sm:p-6 gap-4">
+                          <AlertDialogHeader className="space-y-3">
+                            <AlertDialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+                              <AlertTriangle className="h-5 w-5 text-destructive" />
+                              Kosongkan Form CV
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-sm leading-normal">
+                              Tindakan ini akan menghapus semua data yang telah Anda masukkan di form CV. Data yang sudah dihapus tidak dapat dikembalikan.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3 mt-4">
+                            <AlertDialogCancel className="mt-0 w-full sm:w-auto">Batal</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive hover:bg-destructive/90 w-full sm:w-auto"
+                              onClick={handleClearForm}
+                              disabled={isClearing}
+                            >
+                              {isClearing ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Mengosongkan...
+                                </>
+                              ) : (
+                                "Ya, Kosongkan Form"
+                              )}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </motion.div>
+                  )}
                   
                   {currentStep > 0 && (
                     <motion.div
@@ -1284,6 +1464,42 @@ export function CVForm() {
           </AnimatePresence>
         </div>
       </Tabs>
+
+      {/* Photo Cropper Dialog */}
+      <Dialog open={photoDialogOpen} onOpenChange={setPhotoDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Sesuaikan Foto</DialogTitle>
+          </DialogHeader>
+          <div className="relative h-[400px] w-full">
+            {tempPhoto && (
+              <Cropper
+                image={tempPhoto}
+                crop={crop}
+                zoom={zoom}
+                aspect={4/5}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            )}
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPhotoDialogOpen(false)
+                setTempPhoto(null)
+              }}
+            >
+              Batal
+            </Button>
+            <Button onClick={handleSaveCrop}>
+              Simpan
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   )
 }
