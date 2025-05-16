@@ -1,3 +1,5 @@
+"use client"
+
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { TextReveal } from "@/components/animations/text-reveal"
@@ -27,20 +29,19 @@ export default function FiturPage() {
           <div className="text-center max-w-3xl mx-auto mb-16">
             <TextReveal>
               <Badge variant="outline" className="mb-4 py-1.5 px-4 rounded-full">
-                ✨ Fitur Unggulan
+                ✨ Kenapa Harus Apply Yuk?
               </Badge>
             </TextReveal>
             <h1 className="font-bb-casual text-4xl md:text-5xl mb-6">
               <TextReveal delay={0.2}>
                 <span>Fitur </span>
-                <GradientText from="from-primary" to="to-purple-500">Unggulan</GradientText>
-                <span> Kami</span>
+                <GradientText from="from-primary" to="to-purple-500">Keren</GradientText>
+                <span> Buat Kamu</span>
               </TextReveal>
             </h1>
             <TextReveal delay={0.4}>
               <p className="text-lg text-muted-foreground">
-                Kami menyediakan berbagai fitur untuk membantu Anda membuat CV yang profesional dan ATS-friendly dengan
-                mudah.
+                Bikin CV jadi gampang dan keren dengan berbagai fitur canggih yang bakal bikin CV kamu stand out! 🚀
               </p>
             </TextReveal>
           </div>
@@ -61,31 +62,30 @@ export default function FiturPage() {
                 </div>
                 <div className="space-y-6">
                   <Badge variant="outline" className="py-1.5 px-4 rounded-full border-primary/20 bg-primary/5 text-primary">
-                    Template ATS-Friendly
+                    Template Anti Reject! 💪
                   </Badge>
-                  <h2 className="text-3xl font-bold">Desain yang Dioptimasi untuk ATS</h2>
+                  <h2 className="text-3xl font-bold">CV yang Pasti Lolos ATS</h2>
                   <p className="text-muted-foreground">
-                    Semua template kami dirancang khusus agar sesuai dengan struktur linear yang dikenali oleh Applicant
-                    Tracking System (ATS). Kami menghindari elemen yang dapat mengganggu pemindaian otomatis.
+                    Template kita udah didesain khusus biar gampang dibaca sama robot ATS. Jadi CV kamu bakal lolos tahap screening dan sampai ke tangan HRD! 🎯
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">
                         <Check className="h-4 w-4 text-primary" />
                       </div>
-                      <span>Format yang mudah dibaca oleh ATS</span>
+                      <span>Dijamin lolos ATS</span>
                     </li>
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">
                         <Check className="h-4 w-4 text-primary" />
                       </div>
-                      <span>Struktur yang jelas dan terorganisir</span>
+                      <span>Rapi dan gampang dibaca</span>
                     </li>
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">
                         <Check className="h-4 w-4 text-primary" />
                       </div>
-                      <span>Desain profesional dan modern</span>
+                      <span>Desain kekinian</span>
                     </li>
                   </ul>
                 </div>
@@ -96,31 +96,30 @@ export default function FiturPage() {
               <div className="grid md:grid-cols-2 gap-16 items-center mb-24">
                 <div className="order-2 md:order-1 space-y-6">
                   <Badge variant="outline" className="py-1.5 px-4 rounded-full border-primary/20 bg-primary/5 text-primary">
-                    Editor Real-Time
+                    Preview Langsung! 👀
                   </Badge>
-                  <h2 className="text-3xl font-bold">Lihat Perubahan Secara Langsung</h2>
+                  <h2 className="text-3xl font-bold">Lihat Hasilnya Sambil Ngetik</h2>
                   <p className="text-muted-foreground">
-                    Dengan editor real-time kami, Anda dapat melihat perubahan pada CV Anda secara langsung saat Anda
-                    mengetik. Tidak perlu menunggu atau mengklik tombol preview berulang kali.
+                    Nggak perlu bolak-balik klik preview, kamu bisa langsung lihat perubahan CV-mu secara real-time. Praktis kan? ⚡
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">
                         <Check className="h-4 w-4 text-primary" />
                       </div>
-                      <span>Preview CV secara real-time</span>
+                      <span>Preview langsung</span>
                     </li>
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">
                         <Check className="h-4 w-4 text-primary" />
                       </div>
-                      <span>Antarmuka yang intuitif dan mudah digunakan</span>
+                      <span>Gampang banget dipake</span>
                     </li>
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">
                         <Check className="h-4 w-4 text-primary" />
                       </div>
-                      <span>Pengalaman pengguna yang mulus</span>
+                      <span>Super nyaman</span>
                     </li>
                   </ul>
                 </div>
@@ -153,31 +152,30 @@ export default function FiturPage() {
                 </div>
                 <div className="space-y-6">
                   <Badge variant="outline" className="py-1.5 px-4 rounded-full border-primary/20 bg-primary/5 text-primary">
-                    Ringkasan Profesional AI
+                    AI Jadi Asisten Kamu! 🤖
                   </Badge>
-                  <h2 className="text-3xl font-bold">Biarkan AI Membantu Anda</h2>
+                  <h2 className="text-3xl font-bold">Bikin Ringkasan Pakai AI</h2>
                   <p className="text-muted-foreground">
-                    Kesulitan menulis ringkasan profesional yang menarik? Gunakan teknologi AI kami untuk membantu Anda
-                    membuat ringkasan yang profesional berdasarkan pengalaman dan keahlian Anda.
+                    Bingung nulis ringkasan yang keren? Tenang, AI kita siap bantu bikin ringkasan yang ciamik berdasarkan pengalaman dan skill kamu! ✨
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">
                         <Check className="h-4 w-4 text-primary" />
                       </div>
-                      <span>Ringkasan yang dipersonalisasi</span>
+                      <span>Sesuai sama profil kamu</span>
                     </li>
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">
                         <Check className="h-4 w-4 text-primary" />
                       </div>
-                      <span>Hemat waktu dan usaha</span>
+                      <span>Hemat waktu, tinggal klik!</span>
                     </li>
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">
                         <Check className="h-4 w-4 text-primary" />
                       </div>
-                      <span>Hasil yang profesional dan menarik</span>
+                      <span>Hasilnya keren abis</span>
                     </li>
                   </ul>
                 </div>
@@ -186,39 +184,44 @@ export default function FiturPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <ScrollReveal delay={0.1}>
-                <div className="group rounded-xl p-8 bg-background/60 hover:bg-background/80 transition-all duration-300 hover:scale-[1.02] shadow-sm">
+                <div className="group rounded-xl p-8 bg-background/60 hover:bg-background/80 transition-all duration-300 hover:scale-[1.02] shadow-sm min-h-[250px] flex flex-col">
                   <div className="mb-4 bg-primary/10 w-fit p-3 rounded-lg">
                     <Globe className="h-8 w-8 text-primary transition-transform duration-300 group-hover:scale-110" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3">Multi-bahasa</h3>
-                  <p className="text-muted-foreground">
-                    Ganti antara Bahasa Indonesia dan Inggris dengan mudah. Cocok untuk lamaran kerja lokal maupun
-                    internasional.
-                  </p>
+                  <div className="flex-1 flex flex-col">
+                    <h3 className="text-xl font-bold mb-3">Dua Bahasa! 🌏</h3>
+                    <p className="text-muted-foreground">
+                      Mau ngelamar kerja di Indo atau luar negeri? Gampang! Tinggal ganti bahasa sesuai kebutuhan kamu.
+                    </p>
+                  </div>
                 </div>
               </ScrollReveal>
 
               <ScrollReveal delay={0.2}>
-                <div className="group rounded-xl p-8 bg-background/60 hover:bg-background/80 transition-all duration-300 hover:scale-[1.02] shadow-sm">
+                <div className="group rounded-xl p-8 bg-background/60 hover:bg-background/80 transition-all duration-300 hover:scale-[1.02] shadow-sm min-h-[250px] flex flex-col">
                   <div className="mb-4 bg-primary/10 w-fit p-3 rounded-lg">
                     <Cloud className="h-8 w-8 text-primary transition-transform duration-300 group-hover:scale-110" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3">Penyimpanan Cloud</h3>
-                  <p className="text-muted-foreground">
-                    Simpan draft CV Anda untuk diedit di lain waktu. Akses CV Anda dari mana saja dan kapan saja.
-                  </p>
+                  <div className="flex-1 flex flex-col">
+                    <h3 className="text-xl font-bold mb-3">Aman di Cloud ☁️</h3>
+                    <p className="text-muted-foreground">
+                      CV kamu tersimpan aman di cloud. Bisa diedit kapan aja, di mana aja. Praktis kan?
+                    </p>
+                  </div>
                 </div>
               </ScrollReveal>
 
               <ScrollReveal delay={0.3}>
-                <div className="group rounded-xl p-8 bg-background/60 hover:bg-background/80 transition-all duration-300 hover:scale-[1.02] shadow-sm">
+                <div className="group rounded-xl p-8 bg-background/60 hover:bg-background/80 transition-all duration-300 hover:scale-[1.02] shadow-sm min-h-[250px] flex flex-col">
                   <div className="mb-4 bg-primary/10 w-fit p-3 rounded-lg">
                     <Lock className="h-8 w-8 text-primary transition-transform duration-300 group-hover:scale-110" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3">Privasi Terjamin</h3>
-                  <p className="text-muted-foreground">
-                    Data Anda aman dan tidak kami bagikan ke pihak manapun. Kami memprioritaskan keamanan dan privasi Anda.
-                  </p>
+                  <div className="flex-1 flex flex-col">
+                    <h3 className="text-xl font-bold mb-3">Data Aman! 🔒</h3>
+                    <p className="text-muted-foreground">
+                      Tenang aja, data kamu aman banget sama kita. Privasi kamu adalah prioritas utama kita!
+                    </p>
+                  </div>
                 </div>
               </ScrollReveal>
             </div>

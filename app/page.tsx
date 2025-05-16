@@ -55,9 +55,9 @@ export default function Home() {
                 <h1 className="font-bb-casual text-4xl md:text-5xl lg:text-6xl leading-tight">
                   <HeroText delay={0.1}>
                     <span className="inline-block">
-                      Bikin{" "}
+                      Yuk{" "}
                       <span className="relative">
-                        <span className="relative z-10">CV</span>
+                        <span className="relative z-10">Bikin CV</span>
                         <span className="absolute bottom-1 left-0 w-full h-2 bg-primary/30 rounded-md -z-0"></span>
                       </span>
                     </span>
@@ -65,25 +65,25 @@ export default function Home() {
                   <br />
                   <HeroText delay={0.3}>
                     <span className="text-primary font-bold">
-                      Profesional
+                      Keren & ATS-Friendly
                     </span>
                   </HeroText>
                   <br />
                   <HeroText delay={0.5}>
                     <span className="inline-block">
-                      Dengan Format
+                      Biar Makin
                     </span>
                   </HeroText>
                   <br />
                   <HeroText delay={0.7}>
-                    <span className="inline-block">Yang Tepat</span>
+                    <span className="inline-block">Gampang Diterima!</span>
                   </HeroText>
                 </h1>
               </div> 
               <TextReveal delay={0.3}>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Bikin CV kamu jadi lebih keren dengan format yang cocok buat sistem rekrutmen (ATS).
-                  <span className="font-semibold text-primary"> Gampang, cepet, dan gratis selamanya!</span>
+                  CV kamu bakal keliatan profesional dan pasti kebaca sama ATS! 
+                  <span className="font-semibold text-primary"> Bikinnya gampang, cepet, dan gratis selamanya! 🚀</span>
                 </p>
               </TextReveal>
               <TextReveal delay={0.5}>
@@ -95,7 +95,7 @@ export default function Home() {
                       className="rounded-full bg-primary hover:bg-primary/90 group shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
                     >
                       <Link href="/buat-cv" className="flex items-center">
-                        Buat CV Sekarang
+                        Gas Bikin CV! 🎯
                         <ArrowUpRight className="h-4 w-4 ml-2 transition-transform group-hover:rotate-45" />
                       </Link>
                     </Button>
@@ -107,7 +107,7 @@ export default function Home() {
                     className="rounded-full group border-2 hover:bg-primary/5"
                   >
                     <Link href="/preview-cv" className="flex items-center">
-                      Lihat Contoh CV
+                      Intip Contohnya! 👀
                       <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </Button>
@@ -119,13 +119,13 @@ export default function Home() {
                     <div className="bg-green-500/10 p-1 rounded-full">
                       <CheckCircle className="h-4 w-4 text-green-500" />
                     </div>
-                    <span>Gratis 100%</span>
+                    <span>Gratis Selamanya!</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <div className="bg-primary/10 p-1 rounded-full">
                       <Star className="h-4 w-4 text-primary" />
                     </div>
-                    <span>Gak Ada Watermark</span>
+                    <span>Tanpa Watermark!</span>
                   </div>
                 </div>
               </TextReveal>
@@ -274,10 +274,10 @@ export default function Home() {
         <div className="container mx-auto px-4 relative">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { number: "3+", label: "Template ATS", icon: <FileText className="h-6 w-6 text-primary" /> },
-              { number: "100%", label: "ATS-Friendly", icon: <Award className="h-6 w-6 text-primary" /> },
-              { number: "Free", label: "Tanpa Biaya", icon: <Star className="h-6 w-6 text-primary" /> },
-              { number: "Beta", label: "Versi Awal", icon: <Users className="h-6 w-6 text-primary" /> },
+              { number: "3+", label: "Template Keren! 🎨", icon: <FileText className="h-6 w-6 text-primary" /> },
+              { number: "100%", label: "Lolos ATS! ✅", icon: <Award className="h-6 w-6 text-primary" /> },
+              { number: "Free", label: "Gratis! 🎉", icon: <Star className="h-6 w-6 text-primary" /> },
+              { number: "Beta", label: "Versi Baru! 🚀", icon: <Users className="h-6 w-6 text-primary" /> },
             ].map((stat, index) => (
               <ScrollReveal key={index} delay={index * 0.1}>
                 <motion.div 
@@ -313,11 +313,11 @@ export default function Home() {
                 ✨ Fitur Keren
               </Badge>
               <h2 className="font-bb-casual text-3xl md:text-4xl mb-4">
-                Kenapa CV dari Kita Lebih Oke?
+                Kenapa CV dari Kita Lebih Oke? 🌟
               </h2>
             </TextReveal>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Fitur-fitur keren yang bikin CV kamu stand out dan gampang lolos ATS
+              Fitur-fitur keren yang bikin CV kamu stand out dan gampang lolos ATS! ✨
             </p>
           </div>
 
@@ -325,38 +325,38 @@ export default function Home() {
             {[
               {
                 icon: <CheckCircle className="h-10 w-10 text-white" />,
-                title: "Format ATS-Friendly",
-                description: "Template CV yang udah didesain khusus biar gampang dibaca sama ATS.",
+                title: "Template Anti Reject! 💪",
+                description: "CV kamu pasti lolos ATS karena template kita udah didesain khusus buat itu!",
                 color: "bg-primary",
               },
               {
                 icon: <FileText className="h-10 w-10 text-white" />,
-                title: "Desain Minimalis",
-                description: "Tampilan bersih dan profesional yang fokus ke konten penting.",
+                title: "Desain Kekinian! ✨",
+                description: "Tampilan bersih dan profesional yang bikin CV kamu stand out!",
                 color: "bg-primary",
               },
               {
                 icon: <Zap className="h-10 w-10 text-white" />,
-                title: "Gampang Dipake",
-                description: "Interface yang simpel dan gak ribet buat bikin CV dengan cepet.",
+                title: "Super Gampang! ⚡",
+                description: "Tinggal isi data, pilih template, langsung jadi deh! Secepet kilat!",
                 color: "bg-primary",
               },
               {
                 icon: <Globe className="h-10 w-10 text-white" />,
-                title: "Bahasa Indonesia",
-                description: "Full pake Bahasa Indonesia biar lebih gampang dipake.",
+                title: "Dua Bahasa! 🌏",
+                description: "Mau lamar kerja di Indo atau luar negeri? Gampang, tinggal ganti bahasa!",
                 color: "bg-primary",
               },
               {
                 icon: <FileText className="h-10 w-10 text-white" />,
-                title: "3+ Template",
-                description: "Pilihan template keren yang udah dioptimasi buat ATS.",
+                title: "Template Keren! 🎨",
+                description: "Pilihan template yang udah dioptimasi buat ATS, dijamin lolos screening!",
                 color: "bg-primary",
               },
               {
                 icon: <Star className="h-10 w-10 text-white" />,
-                title: "Gratis",
-                description: "Bikin CV profesional tanpa bayar sepeser pun.",
+                title: "Gratis Selamanya! 🎉",
+                description: "Bikin CV profesional tanpa keluar duit sepeser pun. Keren kan?",
                 color: "bg-primary",
               },
             ].map((feature, index) => (
@@ -395,11 +395,11 @@ export default function Home() {
                 🎯 Cara Gampang
               </Badge>
               <h2 className="font-bb-casual text-3xl md:text-4xl mb-4">
-                3 Langkah Gampang Bikin CV ATS-Friendly
+                3 Langkah Gampang Bikin CV Keren! 🚀
               </h2>
             </TextReveal>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Cara simpel dan cepet buat bikin CV profesional
+              Cara simpel dan cepet buat bikin CV profesional yang pasti lolos ATS! ✨
             </p>
           </div>
 
@@ -407,20 +407,20 @@ export default function Home() {
             {[
               {
                 step: "1",
-                title: "Isi Data CV",
-                description: "Masukin data diri, pengalaman kerja, pendidikan, sama skill kamu.",
+                title: "Isi Data Kamu! 📝",
+                description: "Tinggal masukin data diri, pengalaman kerja, pendidikan, sama skill kamu. Gampang banget!",
                 image: "/images/cv-step-1.jpg",
               },
               {
                 step: "2",
-                title: "Pilih Template",
-                description: "Pilih dari 3+ template keren yang udah dioptimasi buat ATS.",
+                title: "Pilih Template! 🎨",
+                description: "Pilih template yang paling cocok sama kamu. Semuanya udah dioptimasi buat ATS kok!",
                 image: "/images/cv-step-2.jpg",
               },
               {
                 step: "3",
-                title: "Download PDF",
-                description: "Cek hasilnya dan download CV dalam format PDF siap pake.",
+                title: "Download & Apply! 🚀",
+                description: "CV kamu udah jadi dan siap dipake buat lamar kerja. Tinggal download aja!",
                 image: "/images/cv-step-1.jpg",
               },
             ].map((step, index) => (
@@ -473,7 +473,7 @@ export default function Home() {
                 💬 Kata Mereka
               </Badge>
               <h2 className="font-bb-casual text-3xl md:text-4xl mb-4">
-                Apa Kata Mereka yang Udah Pake?
+                Yang Udah Pake Bilang Apa? 💬
               </h2>
             </TextReveal>
           </div>
@@ -556,10 +556,10 @@ export default function Home() {
                 🚀 Gas Langsung
               </Badge>
               <h2 className="font-bb-casual text-3xl md:text-4xl mb-6">
-                Siap Bikin CV yang Lolos Screening?
+                Siap Bikin CV yang Pasti Lolos? 🎯
               </h2>
               <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Yuk bikin CV ATS-friendly gratis dan tingkatin peluang karier kamu sekarang!
+                Yuk bikin CV keren yang ATS-friendly, gratis, dan tingkatin peluang karier kamu sekarang! ✨
               </p>
               <MagneticButton>
                 <Button
@@ -568,7 +568,7 @@ export default function Home() {
                   className="rounded-full bg-primary hover:bg-primary/90 group shadow-md transition-all duration-300"
                 >
                   <Link href="/buat-cv" className="flex items-center text-lg">
-                    Yuk Bikin CV Gratis
+                    Gas Bikin CV! 🚀
                     <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover:rotate-45" />
                   </Link>
                 </Button>

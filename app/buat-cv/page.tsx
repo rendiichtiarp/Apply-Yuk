@@ -53,19 +53,19 @@ export default function BuatCVPage() {
             <div className="text-center mb-12">
               <TextReveal>
                 <Badge variant="outline" className="mb-4 py-1.5 px-4 rounded-full">
-                  📝 Buat CV
+                  ✨ Ayo Mulai!
                 </Badge>
               </TextReveal>
               <h1 className="font-bb-casual text-4xl md:text-5xl mb-6">
                 <TextReveal delay={0.2}>
-                  <span>Lengkapi Data </span>
-                  <GradientText from="from-primary" to="to-purple-500">CV</GradientText>
+                  <span>Ceritain </span>
+                  <GradientText from="from-primary" to="to-purple-500">Perjalanan</GradientText>
                   <span> Kamu</span>
                 </TextReveal>
               </h1>
               <TextReveal delay={0.4}>
                 <p className="text-lg text-muted-foreground">
-                  Masukkan informasi berikut untuk menghasilkan CV yang terstruktur dan lolos ATS.
+                  Yuk, isi data kamu dengan lengkap biar CV-nya makin keren! Tenang, kita bantuin bikin yang pasti lolos ATS kok! 🚀
                 </p>
               </TextReveal>
             </div>

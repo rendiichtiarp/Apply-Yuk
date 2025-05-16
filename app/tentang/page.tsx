@@ -1,3 +1,5 @@
+"use client"
+
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { TextReveal } from "@/components/animations/text-reveal"
@@ -25,19 +27,19 @@ export default function TentangPage() {
           <div className="text-center max-w-3xl mx-auto mb-16">
             <TextReveal>
               <Badge variant="outline" className="mb-4 py-1.5 px-4 rounded-full">
-                👋 Tentang Kami
+                💫 Kenalan Yuk!
               </Badge>
             </TextReveal>
             <h1 className="font-bb-casual text-4xl md:text-5xl mb-6">
               <TextReveal delay={0.2}>
-                <span>Tentang </span>
-                <GradientText from="from-primary" to="to-purple-500">Platform</GradientText>
-                <span> Ini</span>
+                <span>Cerita di Balik </span>
+                <GradientText from="from-primary" to="to-purple-500">Apply</GradientText>
+                <span>Yuk</span>
               </TextReveal>
             </h1>
             <TextReveal delay={0.4}>
               <p className="text-lg text-muted-foreground">
-                Pelajari lebih lanjut tentang platform pembuat CV yang membantu Anda meraih pekerjaan impian.
+                Penasaran sama platform yang bakal bantuin kamu dapetin kerja impian? Yuk, kenalan lebih dekat! ✨
               </p>
             </TextReveal>
           </div>
@@ -58,32 +60,30 @@ export default function TentangPage() {
                 </div>
                 <div className="space-y-6">
                   <Badge variant="outline" className="py-1.5 px-4 rounded-full border-primary/20 bg-primary/5 text-primary">
-                    Visi Kami
+                    Mimpi Kita! 🌟
                   </Badge>
-                  <h2 className="text-3xl font-bold">Memudahkan Pencari Kerja</h2>
+                  <h2 className="text-3xl font-bold">Bikin Ngelamar Kerja Jadi Gampang</h2>
                   <p className="text-muted-foreground">
-                    Kami percaya bahwa setiap orang berhak mendapatkan kesempatan kerja yang lebih baik. Platform ini
-                    dibangun untuk membantu Anda membuat CV profesional yang menonjolkan potensi diri dengan mudah dan
-                    cepat.
+                    Kita percaya kalau semua orang pantes dapet kerjaan yang oke! Makanya kita bikin platform ini 
+                    buat bantuin kamu bikin CV keren yang bisa nunjukin potensi kamu. Gampang dan cepet! 🚀
                   </p>
                   <div className="grid gap-4">
                     <div className="p-4 rounded-xl bg-background/60 hover:bg-background/80 transition-all duration-300 shadow-sm">
-                      <h3 className="font-semibold mb-2">Mudah Digunakan</h3>
+                      <h3 className="font-semibold mb-2">Gampang Banget! 👌</h3>
                       <p className="text-muted-foreground text-sm">
-                        Interface yang intuitif dan panduan langkah demi langkah memastikan Anda dapat membuat CV dengan
-                        mudah.
+                        Interface-nya super friendly dan ada panduan step by step, jadi kamu nggak bakal bingung!
                       </p>
                     </div>
                     <div className="p-4 rounded-xl bg-background/60 hover:bg-background/80 transition-all duration-300 shadow-sm">
-                      <h3 className="font-semibold mb-2">Hasil Profesional</h3>
+                      <h3 className="font-semibold mb-2">Hasilnya Keren! ✨</h3>
                       <p className="text-muted-foreground text-sm">
-                        Template yang modern dan ATS-friendly membantu CV Anda tampil profesional dan mudah dibaca.
+                        Template modern yang ATS-friendly, bikin CV kamu keliatan profesional dan pasti kebaca!
                       </p>
                     </div>
                     <div className="p-4 rounded-xl bg-background/60 hover:bg-background/80 transition-all duration-300 shadow-sm">
-                      <h3 className="font-semibold mb-2">Dukungan AI</h3>
+                      <h3 className="font-semibold mb-2">Ada AI-nya! 🤖</h3>
                       <p className="text-muted-foreground text-sm">
-                        Teknologi AI membantu Anda menulis konten yang menarik dan relevan untuk CV Anda.
+                        AI kita siap bantuin kamu bikin konten yang eye-catching buat CV kamu!
                       </p>
                     </div>
                   </div>
@@ -94,17 +94,17 @@ export default function TentangPage() {
             <ScrollReveal>
               <div className="text-center max-w-3xl mx-auto">
                 <Badge variant="outline" className="py-1.5 px-4 rounded-full border-primary/20 bg-primary/5 text-primary mb-6">
-                  Bergabunglah Sekarang
+                  Gas Langsung! 🚀
                 </Badge>
-                <h2 className="text-3xl font-bold mb-4">Mulai Buat CV Profesional Anda</h2>
+                <h2 className="text-3xl font-bold mb-4">Yuk, Bikin CV Keren Kamu!</h2>
                 <p className="text-muted-foreground mb-8">
-                  Tidak perlu menunggu lagi. Buat CV profesional Anda sekarang dan tingkatkan peluang karir Anda.
+                  Ngapain nunggu? Langsung aja bikin CV keren dan tingkatin peluang kamu dapet kerja impian! ✨
                 </p>
                 <a
                   href="/buat-cv"
                   className="inline-flex items-center px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-300"
                 >
-                  Buat CV Sekarang
+                  Mulai Bikin CV! 🎯
                 </a>
               </div>
             </ScrollReveal>
