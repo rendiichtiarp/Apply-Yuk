@@ -1,7 +1,27 @@
 {
-  "name": "my-v0-project",
-  "version": "0.1.0",
+  "name": "apply-yuk",
+  "version": "1.0.0",
+  "description": "Modern CV builder with AI-powered summary generation and ATS optimization. Built with Next.js, Tailwind CSS, and Gemini AI.",
   "private": true,
+  "author": {
+    "name": "Rendi Ichtiar Prasetyo",
+    "email": "rendiichtiarprasetyo@gmail.com"
+  },
+  "homepage": "https://applyyuk.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rendiichtiarp/apply-yuk"
+  },
+  "bugs": {
+    "url": "https://github.com/rendiichtiarp/apply-yuk/issues",
+    "email": "rendiichtiarprasetyo@gmail.com"
+  },
+  "keywords": [
+    "cv-builder",
+    "resume-generator",
+    "ats-friendly",
+    "job-application"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
