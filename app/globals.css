@@ -223,36 +223,6 @@
   scrollbar-width: none;
 }
 
-.cv-paper {
-  background-color: white;
-  color: black;
-  width: 210mm;
-  min-height: 297mm;
-  padding: 20mm;
-  margin: 0 auto;
-  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
-}
-
-.cv-paper-preview {
-  transform: scale(0.7);
-  transform-origin: top center;
-  margin-bottom: -30%;
-}
-
-@media (min-width: 1024px) {
-  .cv-paper-preview {
-    transform: scale(0.8);
-    margin-bottom: -20%;
-  }
-}
-
-@media (min-width: 1280px) {
-  .cv-paper-preview {
-    transform: scale(0.9);
-    margin-bottom: -10%;
-  }
-}
-
 .template-preview {
   transform: scale(0.6);
   transform-origin: top center;

@@ -100,17 +100,6 @@ export default function Home() {
                       </Link>
                     </Button>
                   </MagneticButton>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="lg"
-                    className="rounded-full group border-2 hover:bg-primary/5"
-                  >
-                    <Link href="/preview-cv" className="flex items-center">
-                      Intip Contohnya! 👀
-                      <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
-                    </Link>
-                  </Button>
                 </div>
               </TextReveal>
               <TextReveal delay={0.7}>

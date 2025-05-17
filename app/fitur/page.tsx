@@ -96,24 +96,24 @@ export default function FiturPage() {
               <div className="grid md:grid-cols-2 gap-16 items-center mb-24">
                 <div className="order-2 md:order-1 space-y-6">
                   <Badge variant="outline" className="py-1.5 px-4 rounded-full border-primary/20 bg-primary/5 text-primary">
-                    Preview Langsung! 👀
+                    Form Interaktif! 🎯
                   </Badge>
-                  <h2 className="text-3xl font-bold">Lihat Hasilnya Sambil Ngetik</h2>
+                  <h2 className="text-3xl font-bold">Form yang Mudah Digunakan</h2>
                   <p className="text-muted-foreground">
-                    Nggak perlu bolak-balik klik preview, kamu bisa langsung lihat perubahan CV-mu secara real-time. Praktis kan? ⚡
+                    Form yang interaktif dan mudah digunakan, dengan validasi data yang lengkap. Kamu bisa simpan draft kapan saja! ⚡
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">
                         <Check className="h-4 w-4 text-primary" />
                       </div>
-                      <span>Preview langsung</span>
+                      <span>Validasi data lengkap</span>
                     </li>
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">
                         <Check className="h-4 w-4 text-primary" />
                       </div>
-                      <span>Gampang banget dipake</span>
+                      <span>Simpan draft otomatis</span>
                     </li>
                     <li className="flex items-start">
                       <div className="mr-2 mt-1 bg-primary/10 rounded-full p-0.5">

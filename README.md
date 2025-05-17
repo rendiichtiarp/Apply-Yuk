@@ -25,7 +25,6 @@ Sebuah aplikasi web modern untuk membuat CV profesional dengan bantuan AI.
 
 ### 3. Manajemen Data
 - Penyimpanan draft otomatis
-- Fitur ekspor ke PDF
 - Konfirmasi penghapusan data dengan AlertDialog
 - Validasi data yang komprehensif
 
@@ -43,7 +42,6 @@ Sebuah aplikasi web modern untuk membuat CV profesional dengan bantuan AI.
 - **AI Integration**: Google Generative AI (Gemini 2.0)
 - **UI Components**: Shadcn UI
 - **State Management**: React Hooks
-- **PDF Generation**: Custom PDF Generator
 
 ## 📋 Panduan Penggunaan
 
@@ -61,50 +59,11 @@ Sebuah aplikasi web modern untuk membuat CV profesional dengan bantuan AI.
      - Minimal satu pendidikan
      - Beberapa skills (hard/soft skills)
 
-3. **Menyimpan dan Mengekspor**
+3. **Menyimpan Progress**
    - Gunakan tombol "Simpan Draft" untuk menyimpan progress
-   - Pratinjau CV sebelum mengunduh
-   - Ekspor ke format PDF untuk hasil akhir
+   - Data tersimpan otomatis di browser Anda
+   - Bisa dilanjutkan kapan saja
 
 ## 🚀 Memulai Pengembangan
 
-```bash
-# Install dependencies
-pnpm install
-
-# Jalankan development server
-pnpm dev
-
-# Build untuk production
-pnpm build
 ```
-
-## 🔑 Environment Variables
-
-Buat file `.env.local` dan tambahkan:
-```
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
-```
-
-## 📝 Catatan Pengembangan
-
-- Pastikan memiliki Node.js versi terbaru
-- Gunakan pnpm sebagai package manager
-- Perhatikan struktur komponen dan state management
-- Ikuti panduan kontribusi untuk pengembangan
-
-## 📄 Lisensi
-
-Aplikasi ini dilindungi oleh hak cipta dan merupakan perangkat lunak proprietary. Penggunaan, penyalinan, atau distribusi tanpa izin tertulis tidak diperbolehkan. Untuk izin penggunaan dan pertanyaan, silakan hubungi:
-
-Email: rendiichtiarprasetyo@gmail.com
-
-## ⚠️ Pemberitahuan Hak Cipta
-
-Copyright © 2024 Apply Yuk. All rights reserved.
-
-Penggunaan tidak sah atas perangkat lunak ini dapat dikenakan sanksi hukum yang berlaku.
-
----
-
-Dibuat dengan ❤️ untuk membantu pencari kerja Indonesia 

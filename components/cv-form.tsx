@@ -9,14 +9,9 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
-import { PlusCircle, Trash2, Brain, Eye, Download, Save, Loader2, AlertTriangle, Upload, Image as ImageIcon } from "lucide-react"
+import { PlusCircle, Trash2, Brain, Save, Loader2, AlertTriangle, Upload, Image as ImageIcon } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useAiService } from "@/lib/ai-service"
-import { useRouter } from "next/navigation"
-import { generatePDF } from "@/lib/pdf-generator"
-import { MagneticButton } from "@/components/animations/magnetic-button"
-import { ScrollReveal } from "@/components/animations/scroll-reveal"
-import { FloatingElements } from "@/components/animations/floating-elements"
 import { Badge } from "@/components/ui/badge"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -114,14 +109,12 @@ const getCroppedImg = async (imageSrc: string, pixelCrop: Area): Promise<string>
 }
 
 export function CVForm() {
-  const router = useRouter()
   const { toast } = useToast()
   const { generateSummary, loading: aiLoading } = useAiService()
 
   const [activeTab, setActiveTab] = useState("personal")
   const [useAI, setUseAI] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [downloading, setDownloading] = useState(false)
   const [hasDraft, setHasDraft] = useState(false)
   const [isClearing, setIsClearing] = useState(false)
   const [formData, setFormData] = useState<FormData>({
@@ -330,110 +323,6 @@ export function CVForm() {
         description: "CV Anda telah berhasil disimpan sebagai draft",
       })
     }, 1500)
-  }
-
-  const handlePreview = () => {
-    // Save current form data to localStorage before navigating
-    localStorage.setItem("cv-preview-data", JSON.stringify(formData))
-    router.push("/preview-cv")
-  }
-
-  const handleDownloadPDF = async () => {
-    setDownloading(true)
-
-    // Save current form data to localStorage
-    localStorage.setItem("cv-preview-data", JSON.stringify(formData))
-
-    // Create a temporary element to render the CV
-    const tempDiv = document.createElement("div")
-    tempDiv.id = "temp-cv-content"
-    tempDiv.style.position = "absolute"
-    tempDiv.style.left = "-9999px"
-    tempDiv.style.top = "-9999px"
-    document.body.appendChild(tempDiv)
-
-    // Render a simplified version of the CV for PDF generation
-    tempDiv.innerHTML = `
-      <div style="font-family: Arial, sans-serif; padding: 20mm; width: 210mm;">
-        <div style="border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
-          <h1 style="font-size: 24px; margin-bottom: 8px;">${formData.personal.name || "Your Name"}</h1>
-          <p style="color: #666; margin-bottom: 16px;">${formData.experiences[0]?.position || "Your Position"}</p>
-          <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 14px;">
-            <div>${formData.personal.phone || "Phone Number"}</div>
-            <div>${formData.personal.email || "Email Address"}</div>
-            <div>${formData.personal.address || "Location"}</div>
-          </div>
-        </div>
-        
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 18px; margin-bottom: 8px; color: #4361ee;">Ringkasan Profesional</h2>
-          <p>${formData.summary || "Your professional summary will appear here."}</p>
-        </div>
-        
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 18px; margin-bottom: 12px; color: #4361ee;">Pengalaman Kerja</h2>
-          ${formData.experiences
-            .map(
-              (exp) => `
-            <div style="margin-bottom: 16px;">
-              <div style="display: flex; justify-content: space-between;">
-                <div>
-                  <h3 style="font-size: 16px; margin: 0;">${exp.position || "Position"}</h3>
-                  <div style="font-size: 14px; color: #666;">${exp.company || "Company"}, ${exp.location || "Location"}</div>
-                </div>
-                <div style="font-size: 14px; color: #666;">${exp.startDate || "Start"} - ${exp.endDate || "End"}</div>
-              </div>
-              <p style="font-size: 14px; white-space: pre-line; margin-top: 8px;">${exp.description || "Description"}</p>
-            </div>
-          `,
-            )
-            .join("")}
-        </div>
-        
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 18px; margin-bottom: 12px; color: #4361ee;">Pendidikan</h2>
-          ${formData.education
-            .map(
-              (edu) => `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-              <div>
-                <h3 style="font-size: 16px; margin: 0;">${edu.degree || "Degree"}</h3>
-                <p style="font-size: 14px; color: #666; margin: 0;">${edu.institution || "Institution"}</p>
-              </div>
-              <div style="font-size: 14px; color: #666;">${edu.year || "Year"}</div>
-            </div>
-          `,
-            )
-            .join("")}
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-          <div>
-            <h2 style="font-size: 18px; margin-bottom: 8px; color: #4361ee;">Hard Skills</h2>
-            <p>${formData.skills.hard || "Your hard skills"}</p>
-          </div>
-          <div>
-            <h2 style="font-size: 18px; margin-bottom: 8px; color: #4361ee;">Soft Skills</h2>
-            <p>${formData.skills.soft || "Your soft skills"}</p>
-          </div>
-        </div>
-      </div>
-    `
-
-    try {
-      await generatePDF("temp-cv-content", `cv-${formData.personal.name || "user"}.pdf`)
-    } catch (error) {
-      console.error("Error generating PDF:", error)
-      toast({
-        title: "Error",
-        description: "Failed to generate PDF. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      // Clean up
-      document.body.removeChild(tempDiv)
-      setDownloading(false)
-    }
   }
 
   const handleClearForm = () => {
@@ -720,6 +609,21 @@ export function CVForm() {
     }
   }
 
+  const handleSaveCV = () => {
+    setSaving(true)
+    
+    // Simpan ke localStorage
+    localStorage.setItem("cv-data", JSON.stringify(formData))
+    
+    setTimeout(() => {
+      setSaving(false)
+      toast({
+        title: "CV tersimpan",
+        description: "CV Anda telah berhasil disimpan",
+      })
+    }, 1500)
+  }
+
   return (
     <motion.div
       initial="hidden"
@@ -949,16 +853,30 @@ export function CVForm() {
                     {useAI && (
                       <Card className="bg-primary/5 border-primary/20">
                         <CardContent className="p-4">
-                          <p className="text-sm text-muted-foreground mb-3">
-                            AI akan membantu membuat ringkasan profesional berdasarkan data yang Anda masukkan. 
-                            Untuk hasil terbaik, pastikan Anda telah mengisi:
-                            <ul className="list-disc list-inside mt-2 space-y-1">
-                              <li>Data pribadi (minimal nama)</li>
-                              <li>Minimal satu pengalaman kerja</li>
-                              <li>Minimal satu pendidikan</li>
-                              <li>Beberapa skills (hard/soft skills)</li>
-                            </ul>
-                          </p>
+                          <div className="text-sm text-muted-foreground mb-3">
+                            <p className="mb-2">
+                              AI akan membantu membuat ringkasan profesional berdasarkan data yang Anda masukkan.
+                              Untuk hasil terbaik, pastikan Anda telah mengisi:
+                            </p>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                                <span>Data pribadi (minimal nama)</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                                <span>Minimal satu pengalaman kerja</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                                <span>Minimal satu pendidikan</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                                <span>Beberapa skills (hard/soft skills)</span>
+                              </div>
+                            </div>
+                          </div>
                           <Button
                             variant="outline"
                             size="sm"
@@ -1274,56 +1192,36 @@ export function CVForm() {
                 </motion.div>
               </TabsContent>
 
-              {/* Navigation Buttons with enhanced animations */}
+              {/* Navigation Buttons */}
               <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 sm:mt-8">
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto order-2 sm:order-2">
                   {currentStep === formSections.length - 1 && (
-                    <>
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full sm:w-auto"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full sm:w-auto"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Button 
+                        className="w-full bg-primary hover:bg-primary/90"
+                        onClick={handleSaveCV}
+                        disabled={saving}
                       >
-                        <Button 
-                          className="w-full bg-primary hover:bg-primary/90"
-                          onClick={handlePreview}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Pratinjau CV
-                        </Button>
-                      </motion.div>
-                      
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full sm:w-auto"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: 0.1 }}
-                      >
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          onClick={handleDownloadPDF}
-                          disabled={downloading}
-                        >
-                          {downloading ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Downloading...
-                            </>
-                          ) : (
-                            <>
-                              <Download className="h-4 w-4 mr-2" />
-                              Download PDF
-                            </>
-                          )}
-                        </Button>
-                      </motion.div>
-                    </>
+                        {saving ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Menyimpan...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4 mr-2" />
+                            Simpan CV
+                          </>
+                        )}
+                      </Button>
+                    </motion.div>
                   )}
                 </div>
 
